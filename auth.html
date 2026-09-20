@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Dating Memories Journal</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-page">
+    
+    <!-- Top: Hero Branding Centered -->
+    <div class="auth-hero center-hero">
+        <h1 class="auth-hero-title">Dating Memories</h1>
+        <p class="auth-hero-subtitle">Chronicle your shared love story on the cloud.</p>
+        <div class="auth-hero-features horizontal">
+            <div class="feature-item">☁️ Cloud Secured</div>
+            <div class="feature-item">📍 Map Pins</div>
+            <div class="feature-item">📱 Live Sync</div>
+        </div>
+    </div>
+
+    <!-- Bottom: Premium White Glass Panel -->
+    <div class="auth-container">
+        <div class="auth-box glass-panel-premium">
+            <h2 class="auth-box-title">Welcome Back 💕</h2>
+            <p class="subtitle">Initialize Connection</p>
+            
+            <form id="authForm">
+                <div class="form-group">
+                    <label>Couple's Shared Email</label>
+                    <input type="email" id="email" required placeholder="us@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Secret Password</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary glowing-pink" id="authSubmitBtn">Begin Sync</button>
+            </form>
+            
+            <div id="statusMessage" class="status-message hidden"></div>
+            
+            <div class="auth-footer">
+                Secured by Supabase
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
