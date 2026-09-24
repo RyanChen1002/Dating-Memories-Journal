@@ -18,6 +18,17 @@ This project was built without bloated frameworks! It leverages the power of pur
 - **Backend & Database:** Supabase JS SDK (PostgreSQL Database + Auth + Edge Storage).
 - **Maps:** Leaflet.js with free OpenStreetMap tile layers.
 
+## 🤖 AI-Powered Workflow (Spec-Kit)
+
+This repository is fully upgraded with an advanced **Spec-Kit Agentic AI Workflow**. It supports slash commands that completely automate the software development lifecycle directly from the IDE:
+- **`/speckit-constitution`**: Defines core project engineering principles & governance.
+- **`/speckit-specify`**: Auto-generates formal feature specs from natural language.
+- **`/speckit-plan`**: Maps out architecture, data models, and system tech stacks.
+- **`/speckit-tasks`**: Turns the specification and plan into an actionable `tasks.md` checklist.
+- **`/speckit-implement`**: Executes the checklist, autonomously writing actual code. 
+
+All workflow scripts live in `.github/skills/`, and their structured outputs are neatly organized inside `.specify/`.
+
 ## 🚀 Setup & Local Development
 
 1. Clone the repository.
