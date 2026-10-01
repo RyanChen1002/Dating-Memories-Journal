@@ -4,6 +4,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sb = window.supabaseClient;
 
+    // --- SECURITY UTILITY ---
+    function escapeHTML(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     // --- DOM ELEMENTS ---
     const fabAdd = document.getElementById('fabAdd');
     const modal = document.getElementById('addMemoryModal');
@@ -103,8 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     results.forEach(place => {
                         const li = document.createElement('li');
                         const addr = place.address || {};
-                        const mainName = place.name || addr.road || addr.city || addr.town || 'Location';
-                        const subName = [addr.city || addr.town, addr.state, addr.country].filter(Boolean).join(', ');
+                        const mainName = escapeHTML(place.name || addr.road || addr.city || addr.town || 'Location');
+                        const subName = escapeHTML([addr.city || addr.town, addr.state, addr.country].filter(Boolean).join(', '));
                         
                         li.innerHTML = `<span>📍</span> <div>${mainName} <br><span>${subName}</span></div>`;
                         li.addEventListener('click', () => {
@@ -340,14 +351,19 @@ document.addEventListener('DOMContentLoaded', () => {
         memoriesToRender.forEach(mem => {
             const card = document.createElement('div');
             card.className = 'memory-card';
+            
+            const safeCaption = escapeHTML(mem.caption);
+            const safeLocation = escapeHTML(mem.location_name);
+            const safePhotoUrl = escapeHTML(mem.photo_url);
+
             card.innerHTML = `
                 <div class="card-photo-wrapper">
-                    <img src="${mem.photo_url}" alt="${mem.caption}" class="card-photo">
+                    <img src="${safePhotoUrl}" class="card-photo">
                 </div>
                 <div class="card-body">
                     <div class="card-date">${mem.mood} ${new Date(mem.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                    <div class="card-caption">${mem.caption}</div>
-                    <div class="card-location">📍 ${mem.location_name}</div>
+                    <div class="card-caption">${safeCaption}</div>
+                    <div class="card-location">📍 ${safeLocation}</div>
                     <div class="card-actions">
                         <button class="btn-card-action btn-edit" data-id="${mem.id}" data-json='${JSON.stringify(mem).replace(/'/g, "&#39;")}'>Edit</button>
                         <button class="btn-card-action btn-delete" data-id="${mem.id}">Delete</button>
