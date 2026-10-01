@@ -1,15 +1,24 @@
 # 💕 Dating Memories Journal
 
+[![Live Demo On Vercel](https://img.shields.io/badge/Live_Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://dating-memories-journal.vercel.app)  
+**Live Site:** [https://dating-memories-journal.vercel.app](https://dating-memories-journal.vercel.app)
+
 A private, beautifully designed cloud application for couples to log and cherish their favorite dates, locations, and milestones. Built with a stunning dark-mode glassmorphism aesthetic.
+
+## 📖 How to Use
+
+1. **Create an Account:** Visit the site above and confidently sign up. Since it uses Row-Level-Security, your account is entirely isolated and private.
+2. **Add a Memory:** Click the floating pink `+` button in the bottom corner. Upload a photo, pick the date, write a caption, type to search for an exact location using the live map data, and pick a glowing emoji mood.
+3. **Filter the Timeline:** As your memories grow, use the beautiful glass search bar at the top to instantly filter by keywords (like restaurant names) or isolate them by specific years.
+4. **Edit the Past:** Spot a typo? Hover over any memory card to instantly Edit the caption, map location, or delete the memory securely.
 
 ## ✨ Features
 
-- **🔐 Privacy First (Secure Login):** Protected zero-trust architecture. Powered by Supabase Authentication and Postgres Row-Level-Security (RLS), meaning couples can only ever view their own memories.
-- **📸 Intelligent Cloud Photos:** Automatically compresses large date photos securely into a Supabase Storage bucket for lightning-fast loading and preserving free-tier server limits.
-- **🗺️ Interactive Minimaps:** Drop pins directly on your memories using live, open-source OpenStreetMap location autocomplete. Each memory card dynamically renders a gorgeous, vibrant embedded map.
-- **🔎 Relational Dashboard:** Includes a live Relationship Stats engine that computes total memories and unique dates.
-- **⏱️ Smart Filtering:** Instantly animate and filter your relationship roadmap using the custom Year Dropdown or blazing-fast keyword search (fully client-side).
-- **💅 Premium UI/UX:** Built entirely with advanced CSS features: dynamic layouts, vibrant glowing timeline lines, hover-responsive floating emoji orbs, and blurred glass windows.
+- **🔐 Privacy First:** Protected by Supabase Auth and Row-Level-Security (RLS). You only see your own memories.
+- **📸 Cloud Photos:** Fast, auto-compressed cloud storage via Supabase.
+- **🗺️ Interactive Minimaps:** Drop pins with live OpenStreetMap integration.
+- **🔎 Live Dashboard:** Instantly search memories or filter by year.
+- **💅 Premium UI:** Dark-mode glassmorphism, dynamic glowing timelines, and interactive 3D emojis.
 
 ## 🛠️ Tech Stack
 
@@ -37,5 +46,6 @@ All workflow scripts live in `.github/skills/`, and their structured outputs are
 	*(Note: Because of strict RLS policies, it is 100% physically safe to expose your Anon Key to the frontend).*
 4. Run locally using VS Code Live Server or any basic HTTP server!
 
-## 🌍 Coming Soon (Phase 6)
-- **PubThis Hosting:** The next target is configuring a deployment pipeline using the `pubthis` MCP/CLI instead of traditional hosts to instantly publish this journal to the internet.
+## 🌍 Deployment
+
+- **Hosting:** Fully deployed and automatically built via **Vercel**. Connect this codebase to Vercel for instantaneous, free global edge hosting!

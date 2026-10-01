@@ -90,7 +90,7 @@
 ## Phase 6: Polish & Cross-Cutting Concerns (Future)
 
 - [x] T048 Create `manifest.json` for PWA mobile install capability
-- [ ] T049 Deploy to PubThis hosting platform
+- [x] T049 Deploy project via Vercel GitHub integration natively
 - [x] T050 Add responsive CSS breakpoints for mobile (≥ 320px) in `css/style.css`
 - [x] T051 Add `background-clip` standard property alongside `-webkit-background-clip` for CSS compatibility in `css/style.css`
 - [ ] T052 Implement "Load More" pagination if memories exceed 20 in `js/memory.js`

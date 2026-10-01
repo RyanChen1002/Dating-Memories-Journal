@@ -173,7 +173,7 @@ Dating-Memories-Journal/
 - **Main**: `main` for stable releases
 - **Commit style**: `feat:`, `fix:`, `docs:` conventional commits
 
-### Deployment Strategy (Phase 6 — Future)
-- **Platform**: PubThis (preferred) or alternative static hosting
+### Deployment Strategy
+- **Platform**: Vercel (free global edge deployment)
 - **Process**: Push to GitHub → auto-deploy from `main` branch
-- **PWA**: Future `manifest.json` for mobile "install" capability
+- **PWA**: Using `manifest.json` for mobile "install" capability
