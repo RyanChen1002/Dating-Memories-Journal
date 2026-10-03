@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-body">
                     <div class="card-date">${mem.mood} ${new Date(mem.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                     <div class="card-caption">${safeCaption}</div>
-                    <div class="card-location" style="cursor: pointer;" onclick="openFlyoverMap(${mem.location_lat}, ${mem.location_lng}, '${safeLocation.replace(/'/g, "\\'")}', '${safeCaption.replace(/'/g, "\\'")}')">
+                    <div class="card-location" style="cursor: pointer;" onclick="openFlyoverMap(${mem.location_lat || null}, ${mem.location_lng || null}, '${safeLocation.replace(/'/g, "\\'")}', '${safeCaption.replace(/'/g, "\\'")}')">
                         📍 ${safeLocation} <span style="font-size:0.7em; opacity:0.6;">(Click to view map)</span>
                     </div>
                     <div class="card-actions">
