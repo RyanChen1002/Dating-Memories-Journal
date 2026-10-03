@@ -36,8 +36,11 @@ body {
 }
 
 body.timeline-page {
-    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-    /* This pristine vector gradient completely eliminates the blurry photo artifact while keeping it glowing and sleek */
+    /* Mocha Velvet Theme */
+    background: #2a1f2d url('../assets/bg-velvet.png') no-repeat center center fixed;
+    background-size: cover;
+    image-rendering: high-quality; /* Forces browser to heavily anti-alias and prevent blurriness */
+    color: #ffffff;
 }
 
 
