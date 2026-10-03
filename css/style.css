@@ -36,10 +36,9 @@ body {
 }
 
 body.timeline-page {
-    /* Mocha Velvet Theme */
-    background: #2a1f2d url('../assets/bg-velvet.png') no-repeat center center fixed;
+    /* Mocha Velvet Theme (Infinite 8K Vector SVG) */
+    background: #2a1f2d url('../assets/bg-premium.svg') no-repeat center center fixed;
     background-size: cover;
-    image-rendering: high-quality; /* Forces browser to heavily anti-alias and prevent blurriness */
     color: #ffffff;
 }
 

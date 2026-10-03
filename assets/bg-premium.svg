@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+    <defs>
+        <!-- The Deep Luxury Mocha Base -->
+        <linearGradient id="baseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#2c2421"/>
+            <stop offset="50%" stop-color="#1b1513"/>
+            <stop offset="100%" stop-color="#0f0b0a"/>
+        </linearGradient>
+
+        <!-- Ambient Volumetric Lighting Orbs (Creates the fuzzy/velvet abstract look) -->
+        <radialGradient id="orb1" cx="80%" cy="10%" r="60%">
+            <stop offset="0%" stop-color="#543e37" stop-opacity="0.4"/>
+            <stop offset="100%" stop-color="#543e37" stop-opacity="0"/>
+        </radialGradient>
+        
+        <radialGradient id="orb2" cx="10%" cy="80%" r="70%">
+            <stop offset="0%" stop-color="#3d2822" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#3d2822" stop-opacity="0"/>
+        </radialGradient>
+
+        <radialGradient id="orb3" cx="50%" cy="50%" r="40%">
+            <stop offset="0%" stop-color="#805d53" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#805d53" stop-opacity="0"/>
+        </radialGradient>
+
+        <!-- Premium Subtle Velvet Grain -->
+        <filter id="velvetGrain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/>
+            <feColorMatrix type="matrix" values="1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.1 0" />
+        </filter>
+    </defs>
+
+    <!-- Draw Base -->
+    <rect width="1000" height="1000" fill="url(#baseGrad)"/>
+    
+    <!-- Draw Volumetric Velvet Orbs -->
+    <rect width="1000" height="1000" fill="url(#orb1)"/>
+    <rect width="1000" height="1000" fill="url(#orb2)"/>
+    <rect width="1000" height="1000" fill="url(#orb3)"/>
+    
+    <!-- Apply Ultra-High Res Grain -->
+    <rect width="1000" height="1000" filter="url(#velvetGrain)" style="mix-blend-mode: overlay;" opacity="0.3"/>
+</svg>
