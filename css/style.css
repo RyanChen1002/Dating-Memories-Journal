@@ -284,23 +284,9 @@ body::before {
 }
 
 /* ============================================
-   TIMELINE PAGE (index.html) - Cozy Cafe Theme
+   TIMELINE PAGE (index.html) - Theme Legacy Block Removed
    ============================================ */
-body.timeline-page {
-    background: #1a1210 url('../assets/bg-timeline.png') no-repeat center center fixed;
-    background-size: cover;
-    animation: none;
-    color: #fff;
-}
-
-body.timeline-page::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 10, 8, 0.55);
-    z-index: 0;
-    pointer-events: none;
-}
+/* Purged to allow main CSS vector gradient to render properly */
 
 .timeline-header {
     display: flex;
