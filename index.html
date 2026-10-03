@@ -137,6 +137,17 @@
             </form>
         </div>
     </div>
+    <!-- INTERACTIVE MAP FLYOVER MODAL -->
+    <div id="mapFlyoverModal" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 95%; max-width: 900px; height: 85vh; display: flex; flex-direction: column;">
+            <h2 id="mapFlyoverTitle" style="margin-bottom: 5px;">📍 Location</h2>
+            <p id="mapFlyoverSubtitle" class="subtitle" style="margin-bottom: 15px;">Zooming into memory...</p>
+            <div id="flyoverMapContainer" style="flex: 1; border-radius: 15px; border: 1px solid var(--glass-border); width: 100%; z-index: 1;"></div>
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button type="button" class="btn-primary glowing-pink" id="closeMapFlyoverBtn">Close Map</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

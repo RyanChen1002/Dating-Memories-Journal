@@ -396,7 +396,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-body">
                     <div class="card-date">${mem.mood} ${new Date(mem.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                     <div class="card-caption">${safeCaption}</div>
-                    <div class="card-location">📍 ${safeLocation}</div>
+                    <div class="card-location" style="cursor: pointer;" onclick="openFlyoverMap(${mem.location_lat}, ${mem.location_lng}, '${safeLocation.replace(/'/g, "\\'")}', '${safeCaption.replace(/'/g, "\\'")}')">
+                        📍 ${safeLocation} <span style="font-size:0.7em; opacity:0.6;">(Click to view map)</span>
+                    </div>
                     <div class="card-actions">
                         <button class="btn-card-action btn-edit" data-id="${mem.id}" data-json='${JSON.stringify(mem).replace(/'/g, "&#39;")}'>Edit</button>
                         <button class="btn-card-action btn-delete" data-id="${mem.id}">Delete</button>
@@ -462,6 +464,46 @@ document.addEventListener('DOMContentLoaded', () => {
     searchFilter.addEventListener('input', applyFilters);
     yearFilter.addEventListener('change', applyFilters);
 
-    // Initial Load
     loadTimeline();
+
+    // --- INTERACTIVE MAP FLYOVER LOGIC ---
+    let flyoverMap = null;
+    let flyoverMarker = null;
+
+    window.openFlyoverMap = function(lat, lng, locName, caption) {
+        if (!lat || !lng) {
+            alert('Oh no! It looks like this memory doesn\'t have GPS coordinates saved.');
+            return;
+        }
+
+        document.getElementById('mapFlyoverTitle').textContent = `📍 ${locName}`;
+        document.getElementById('mapFlyoverSubtitle').textContent = caption;
+        document.getElementById('mapFlyoverModal').classList.remove('hidden');
+
+        if (!flyoverMap) {
+            flyoverMap = L.map('flyoverMapContainer').setView([lat, lng], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(flyoverMap);
+            flyoverMarker = L.marker([lat, lng]).addTo(flyoverMap);
+        } else {
+            flyoverMap.setView([lat, lng], 14);
+            flyoverMarker.setLatLng([lat, lng]);
+        }
+        
+        // Fix Leaflet rendering bug when modal opens
+        setTimeout(() => {
+            flyoverMap.invalidateSize();
+            flyoverMap.flyTo([lat, lng], 16, {
+                animate: true,
+                duration: 1.5
+            });
+            flyoverMarker.bindPopup(`<b>${locName}</b>`).openPopup();
+        }, 100);
+    };
+
+    document.getElementById('closeMapFlyoverBtn').addEventListener('click', () => {
+        document.getElementById('mapFlyoverModal').classList.add('hidden');
+    });
+
 });
