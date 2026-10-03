@@ -85,9 +85,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Deselect all, then select clicked one
         document.querySelectorAll('.mood-pill').forEach(p => p.classList.remove('selected'));
+        if (document.getElementById('addCustomMoodBtn')) {
+            document.getElementById('addCustomMoodBtn').style.border = '';
+            document.getElementById('addCustomMoodBtn').textContent = 'Use';
+        }
         pill.classList.add('selected');
         selectedMood = pill.dataset.mood;
     });
+
+    const customMoodInput = document.getElementById('customMoodInput');
+    const addCustomMoodBtn = document.getElementById('addCustomMoodBtn');
+    
+    if (addCustomMoodBtn) {
+        addCustomMoodBtn.addEventListener('click', () => {
+            const val = customMoodInput.value.trim();
+            if (val) {
+                document.querySelectorAll('.mood-pill').forEach(p => p.classList.remove('selected'));
+                selectedMood = val;
+                addCustomMoodBtn.textContent = 'Use ' + val;
+                addCustomMoodBtn.style.border = '2px solid var(--primary-pink)';
+                customMoodInput.value = '';
+            }
+        });
+    }
 
     // --- LOCATION AUTOCOMPLETE (OpenStreetMap Nominatim) ---
     const locationInput = document.getElementById('memoryLocation');
@@ -104,8 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         debounceTimer = setTimeout(async () => {
             try {
-                // Fetch from free OpenStreetMap API
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`);
+                // Fetch from free OpenStreetMap API (supporting English and Chinese uniformly)
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&accept-language=en,zh`);
                 const results = await response.json();
                 
                 locationSuggestions.innerHTML = '';
@@ -277,6 +297,10 @@ document.addEventListener('DOMContentLoaded', () => {
         photoPreview.src = '';
         photoDropZone.innerHTML = '<span class="upload-icon">📷</span><span>Click to upload a photo</span>';
         document.querySelectorAll('.mood-pill').forEach(p => p.classList.remove('selected'));
+        if (document.getElementById('addCustomMoodBtn')) {
+            document.getElementById('addCustomMoodBtn').style.border = '';
+            document.getElementById('addCustomMoodBtn').textContent = 'Use';
+        }
         statusMsg.classList.add('hidden');
         statusMsg.textContent = '';
         document.querySelector('.modal-content h2').textContent = 'New Memory ✨';
@@ -318,6 +342,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('statMemories').textContent = memArray.length;
         const uniqueCities = new Set(memArray.map(m => m.location_name).filter(Boolean)).size;
         document.getElementById('statCities').textContent = uniqueCities;
+
+        // Calculate Days Together based on oldest memory
+        if (memArray.length > 0 && document.getElementById('statDays')) {
+            const oldestMemoryDate = new Date(memArray[memArray.length - 1].date); // assuming ordered desc from DB
+            const now = new Date();
+            const diffTime = Math.abs(now - oldestMemoryDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            document.getElementById('statDays').textContent = diffDays;
+        }
 
         // Build Year Dropdown dynamically based on data
         const yearFilter = document.getElementById('yearFilter');

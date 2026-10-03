@@ -37,6 +37,10 @@
                 <span class="stat-value" id="statCities">0</span>
                 <span class="stat-label">Locations</span>
             </div>
+            <div class="stat-item">
+                <span class="stat-value" id="statDays">0</span>
+                <span class="stat-label">Days Together</span>
+            </div>
         </div>
 
         <!-- Controls -->
@@ -80,6 +84,7 @@
                 <div class="form-group">
                     <label>Date of Memory</label>
                     <input type="date" id="memoryDate" required>
+                    <small style="color: #aaa; font-size: 0.75rem;">Click the calendar icon or type directly (YYYY-MM-DD)</small>
                 </div>
 
                 <!-- CAPTION -->
@@ -107,6 +112,18 @@
                         <div class="mood-pill" data-mood="🎉">🎉</div>
                         <div class="mood-pill" data-mood="☕">☕</div>
                         <div class="mood-pill" data-mood="🌅">🌅</div>
+                        <div class="mood-pill" data-mood="🌸">🌸</div>
+                        <div class="mood-pill" data-mood="🍂">🍂</div>
+                        <div class="mood-pill" data-mood="🌌">🌌</div>
+                        <div class="mood-pill" data-mood="🌷">🌷</div>
+                        <div class="mood-pill" data-mood="🛥️">🛥️</div>
+                        <div class="mood-pill" data-mood="🛶">🛶</div>
+                        <div class="mood-pill" data-mood="🥂">🥂</div>
+                        <div class="mood-pill" data-mood="🎄">🎄</div>
+                    </div>
+                    <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
+                        <input type="text" id="customMoodInput" placeholder="Or paste any emoji here..." maxlength="2" style="flex: 1; text-align: center; font-size: 1.4rem;">
+                        <button type="button" id="addCustomMoodBtn" class="btn-secondary" style="padding: 6px 14px; font-size: 0.8rem;">Use</button>
                     </div>
                 </div>
 
