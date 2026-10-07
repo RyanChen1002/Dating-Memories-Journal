@@ -24,6 +24,7 @@ window.logEvent = async function(eventType, eventMessage, eventData = {}) {
 
         // Fire & Forget insert to immutable audit table
         const { error } = await window.supabaseClient.from('audit_logs').insert([{
+            id: crypto.randomUUID(), // Manually generate UUID to bypass potential DB extension errors
             event_type: eventType,
             event_message: eventMessage,
             event_data: eventData,
