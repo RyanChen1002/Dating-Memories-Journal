@@ -220,13 +220,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     .update(payload)
                     .eq('id', editingMemoryId);
 
-                if (updateError) throw updateError;
+                if (updateError) {
+                    window.logEvent('memory_error', 'Database failed to update existing memory', { error: updateError.message });
+                    throw updateError;
+                }
+                window.logEvent('memory_update', 'User edited an existing timeline memory', { location: payload.location_name });
                 showMemoryStatus('Memory updated! 💕', 'success');
             } else {
                 // ADD MODE: insert a brand new row
                 payload.user_id = user.id;
                 const { error: insertError } = await sb.from('memories').insert(payload);
-                if (insertError) throw insertError;
+                if (insertError) {
+                    window.logEvent('memory_error', 'Database rejected new memory creation', { error: insertError.message });
+                    throw insertError;
+                }
+                window.logEvent('memory_create', 'New chronological memory uploaded successfully', { location: payload.location_name });
                 showMemoryStatus('Memory saved to the cloud! 💕', 'success');
             }
 
@@ -415,6 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (window.confirm("Are you sure you want to permanently delete this beautiful memory?")) {
                     e.target.textContent = 'Deleting...';
                     await sb.from('memories').delete().eq('id', memoryId);
+                    window.logEvent('memory_delete', 'User permanently deleted a memory from their timeline', { memoryId: memoryId });
                     loadTimeline(); // Reload everything from db
                 }
             });
@@ -472,9 +481,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openFlyoverMap = function(lat, lng, locName, caption) {
         if (!lat || !lng) {
+            window.logEvent('feature_error', 'Interactive map flyover failed due to missing GPS coordinates', { location: locName });
             alert('Oh no! It looks like this memory doesn\'t have GPS coordinates saved.');
             return;
         }
+
+        window.logEvent('feature_usage', 'Interactive map flyover successfully initiated', { location: locName, gps: [lat, lng] });
 
         document.getElementById('mapFlyoverTitle').textContent = `📍 ${locName}`;
         document.getElementById('mapFlyoverSubtitle').textContent = caption;

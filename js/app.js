@@ -53,6 +53,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (loginData.session) {
                 // Login success! Redirect immediately.
+                window.logEvent('auth', 'User successfully authenticated via existing account', { email: email });
+                
                 showStatus('Welcome back! Syncing your memories...', 'success');
                 setTimeout(() => {
                     window.location.href = 'index.html';
@@ -86,6 +88,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Auto-confirmed (no email verification needed)
                 if (signUpData.session) {
+                    window.logEvent('auth_create', 'New couple account successfully registered', { email: email });
+                    
                     showStatus('Account created! Syncing...', 'success');
                     setTimeout(() => {
                         window.location.href = 'index.html';
@@ -112,6 +116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
+                window.logEvent('auth_logout', 'User manually initiated logout sequence');
                 await sb.auth.signOut();
                 window.location.href = 'auth.html';
             });

@@ -10,3 +10,33 @@ if (typeof supabase !== 'undefined') {
 } else {
     console.error("Supabase script tag is missing from index.html!");
 }
+
+// =========================================================================
+// ENTERPRISE SECURITY: IMMUTABLE AUDIT LOGGING ENGINE (Rules 3a, 3b, 3c)
+// =========================================================================
+window.logEvent = async function(eventType, eventMessage, eventData = {}) {
+    if (!window.supabaseClient) return;
+
+    try {
+        // Fetch current user securely
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        const userId = session?.user?.id || null;
+
+        // Fire & Forget insert to immutable audit table
+        const { error } = await window.supabaseClient.from('audit_logs').insert([{
+            event_type: eventType,
+            event_message: eventMessage,
+            event_data: eventData,
+            user_id: userId
+            // created_at is automatically handled by Postgres ISO-8601 clock
+        }]);
+
+        if (error) {
+            console.error('[Audit System Failure] Immutable log rejected:', error.message);
+        } else {
+            console.log(`[Audit] Logged: ${eventType} - ${eventMessage}`);
+        }
+    } catch (e) {
+        console.error('[Audit System Crash] Failed to route internal event:', e);
+    }
+};
