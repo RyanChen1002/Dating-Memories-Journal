@@ -6,7 +6,7 @@
     <title>Login - Dating Memories Journal</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=2">
+    <link rel="stylesheet" href="css/style.css?v=8">
     
     <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,33 +16,33 @@
     <!-- Top: Hero Branding Centered -->
     <div class="auth-hero center-hero">
         <div style="margin-bottom: 1.5rem;">
-            <button id="langToggleBtn" style="background: var(--primary-color, #ff7b9a); color: white; font-weight: 800; border: 2px solid white; border-radius: 20px; padding: 8px 24px; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 123, 154, 0.5); transition: transform 0.2s ease;">🌐 EN / 中文</button>
+            <button id="langToggleBtn" style="background: var(--primary-color, #ff7b9a); color: white; font-weight: 800; border: 2px solid white; border-radius: 20px; padding: 8px 24px; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 123, 154, 0.5); transition: transform 0.2s ease;">EN / 中文</button>
         </div>
         <h1 class="auth-hero-title" data-i18n="title">Dating Memories</h1>
         <p class="auth-hero-subtitle" data-i18n="hero_sub">Chronicle your shared love story on the cloud.</p>
         <div class="auth-hero-features horizontal">
             <div class="feature-item" data-i18n="feat_cloud">☁️ Cloud Secured</div>
             <div class="feature-item" data-i18n="feat_pins">📍 Map Pins</div>
-            <div class="feature-item">📱 Live Sync</div>
+            <div class="feature-item" data-i18n="feat_sync">📱 Live Sync</div>
         </div>
     </div>
 
     <!-- Bottom: Premium White Glass Panel -->
     <div class="auth-container">
         <div class="auth-box glass-panel-premium">
-            <h2 class="auth-box-title">Welcome Back 💕</h2>
-            <p class="subtitle">Initialize Connection</p>
+            <h2 class="auth-box-title" data-i18n="auth_title">Welcome Back 💕</h2>
+            <p class="subtitle" data-i18n="auth_sub">Initialize Connection</p>
             
             <form id="authForm">
                 <div class="form-group">
-                    <label>Couple's Shared Email</label>
-                    <input type="email" id="email" required placeholder="us@example.com">
+                    <label data-i18n="email">Couple's Shared Email</label>
+                    <input type="email" id="email" required placeholder="us@example.com" data-i18n="email_ph">
                 </div>
                 <div class="form-group">
-                    <label>Secret Password</label>
-                    <input type="password" id="password" required placeholder="••••••••">
+                    <label data-i18n="password">Secret Password</label>
+                    <input type="password" id="password" required placeholder="••••••••" data-i18n="password_ph">
                 </div>
-                <button type="submit" class="btn-primary glowing-pink" id="authSubmitBtn">Begin Sync</button>
+                <button type="submit" class="btn-primary glowing-pink" id="authSubmitBtn" data-i18n="begin_sync">Begin Sync</button>
             </form>
             
             <div id="statusMessage" class="status-message hidden"></div>
@@ -53,7 +53,8 @@
         </div>
     </div>
 
-    <script src="js/config.js?v=3"></script>
-    <script src="js/app.js?v=3"></script>
+    <script src="js/config.js?v=8"></script>
+    <script src="js/i18n.js?v=8"></script>
+    <script src="js/app.js?v=8"></script>
 </body>
 </html>
