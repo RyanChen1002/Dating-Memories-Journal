@@ -17,13 +17,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Our Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=4">
+    <link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body class="timeline-page">
     <header class="timeline-header">
         <h1 data-i18n="title">💕 Dating Memories</h1>
         <div style="display: flex; gap: 1rem; align-items: center;">
-            <button id="langToggleBtn" style="background: var(--primary-color, #ff7b9a); color: white; font-weight: 800; border: 2px solid white; border-radius: 20px; padding: 6px 16px; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(255, 123, 154, 0.5); transition: transform 0.2s ease;">EN / 中文</button>
+            <button id="langToggleBtn" style="background: var(--primary-color, #ff7b9a); color: white; font-weight: 800; border: 2px solid white; border-radius: 20px; padding: 6px 16px; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(255, 123, 154, 0.5); transition: transform 0.2s ease; white-space: nowrap;">EN / 中文</button>
             <button id="logoutBtn" class="btn-text" data-i18n="logout">Log Out</button>
         </div>
     </header>
@@ -34,31 +34,31 @@
         <div class="stats-panel">
             <div class="stat-item">
                 <span class="stat-value" id="statMemories">0</span>
-                <span class="stat-label">Memories</span>
+                <span class="stat-label" data-i18n="stat_memories">Memories</span>
             </div>
             <div class="stat-item">
                 <span class="stat-value" id="statCities">0</span>
-                <span class="stat-label">Locations</span>
+                <span class="stat-label" data-i18n="stat_locations">Locations</span>
             </div>
             <div class="stat-item">
                 <span class="stat-value" id="statDays">0</span>
-                <span class="stat-label">Days Together</span>
+                <span class="stat-label" data-i18n="stat_days">Days Together</span>
             </div>
         </div>
 
         <!-- Controls -->
         <div class="control-bar">
-            <input type="text" id="searchFilter" placeholder="Search memories..." autocomplete="off">
+            <input type="text" id="searchFilter" placeholder="Search memories..." autocomplete="off" data-i18n="search_ph">
             <select id="yearFilter">
-                <option value="All">All Years</option>
+                <option value="All" data-i18n="year_all">All Years</option>
             </select>
         </div>
     </div>
 
     <main class="timeline-container" id="timeline">
         <div class="empty-state" id="emptyState" class="hidden">
-            <h2>No memories yet 💕</h2>
-            <p>Tap the + button below to add your first date memory.</p>
+            <h2 data-i18n="no_memories">No memories yet 💕</h2>
+            <p data-i18n="add_first">Tap the + button below to add your first date memory.</p>
         </div>
     </main>
     
@@ -68,16 +68,16 @@
     <!-- ADD MEMORY MODAL -->
     <div id="addMemoryModal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h2>New Memory ✨</h2>
-            <p class="subtitle">Capture the moment</p>
+            <h2 data-i18n="new_memory">New Memory ✨</h2>
+            <p class="subtitle" data-i18n="subtitle">Capture the moment</p>
             
             <form id="memoryForm">
                 <!-- PHOTO UPLOAD -->
                 <div class="form-group">
-                    <label>Date Photo</label>
+                    <label data-i18n="date_photo">Date Photo</label>
                     <div class="photo-upload-area" id="photoDropZone">
                         <span class="upload-icon">📷</span>
-                        <span>Click to upload a photo</span>
+                        <span data-i18n="click_upload">Click to upload a photo</span>
                     </div>
                     <input type="file" id="photoInput" accept="image/*" style="display: none;">
                     <img id="photoPreview" class="photo-preview hidden" alt="preview">
@@ -85,27 +85,27 @@
 
                 <!-- DATE -->
                 <div class="form-group">
-                    <label>Date of Memory</label>
+                    <label data-i18n="date_of_mem">Date of Memory</label>
                     <input type="date" id="memoryDate" required>
-                    <small style="color: #aaa; font-size: 0.75rem;">Click the calendar icon or type directly (YYYY-MM-DD)</small>
+                    <small style="color: #aaa; font-size: 0.75rem;" data-i18n="date_hint">Click the calendar icon or type directly (YYYY-MM-DD)</small>
                 </div>
 
                 <!-- CAPTION -->
                 <div class="form-group">
-                    <label>Caption</label>
-                    <textarea id="memoryCaption" placeholder="What made this moment special?" required></textarea>
+                    <label data-i18n="caption">Caption</label>
+                    <textarea id="memoryCaption" placeholder="What made this moment special?" required data-i18n="caption_ph"></textarea>
                 </div>
 
                 <!-- LOCATION -->
                 <div class="form-group" style="position: relative;">
-                    <label>Location Name</label>
-                    <input type="text" id="memoryLocation" placeholder="e.g. Millennium Park, Chicago" autocomplete="off" required>
+                    <label data-i18n="location_name">Location Name</label>
+                    <input type="text" id="memoryLocation" placeholder="e.g. Millennium Park, Chicago" autocomplete="off" required data-i18n="location_ph">
                     <ul id="locationSuggestions" class="suggestions-dropdown hidden"></ul>
                 </div>
 
                 <!-- MOOD -->
                 <div class="form-group">
-                    <label>Mood</label>
+                    <label data-i18n="mood">Mood</label>
                     <div class="mood-selector" id="moodSelector">
                         <div class="mood-pill" data-mood="😍">😍</div>
                         <div class="mood-pill" data-mood="🥰">🥰</div>
@@ -125,8 +125,8 @@
                         <div class="mood-pill" data-mood="🎄">🎄</div>
                     </div>
                     <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
-                        <input type="text" id="customMoodInput" placeholder="Or paste any emoji here..." maxlength="2" style="flex: 1; text-align: center; font-size: 1.4rem;">
-                        <button type="button" id="addCustomMoodBtn" class="btn-secondary" style="padding: 6px 14px; font-size: 0.8rem;">Use</button>
+                        <input type="text" id="customMoodInput" placeholder="Or paste any emoji here..." maxlength="2" style="flex: 1; text-align: center; font-size: 1.4rem;" data-i18n="custom_mood_ph">
+                        <button type="button" id="addCustomMoodBtn" class="btn-secondary" style="padding: 6px 14px; font-size: 0.8rem;" data-i18n="use_btn">Use</button>
                     </div>
                 </div>
 
@@ -134,8 +134,8 @@
                 
                 <!-- BUTTONS -->
                 <div class="modal-buttons">
-                    <button type="button" class="btn-secondary" id="cancelMemoryBtn">Cancel</button>
-                    <button type="submit" class="btn-primary glowing-pink" id="saveMemoryBtn">Save Memory</button>
+                    <button type="button" class="btn-secondary" id="cancelMemoryBtn" data-i18n="cancel">Cancel</button>
+                    <button type="submit" class="btn-primary glowing-pink" id="saveMemoryBtn" data-i18n="save_mem">Save Memory</button>
                 </div>
             </form>
         </div>
@@ -143,19 +143,20 @@
     <!-- INTERACTIVE MAP FLYOVER MODAL -->
     <div id="mapFlyoverModal" class="modal-overlay hidden">
         <div class="modal-content" style="width: 95%; max-width: 900px; height: 85vh; display: flex; flex-direction: column;">
-            <h2 id="mapFlyoverTitle" style="margin-bottom: 5px;">📍 Location</h2>
-            <p id="mapFlyoverSubtitle" class="subtitle" style="margin-bottom: 15px;">Zooming into memory...</p>
+            <h2 id="mapFlyoverTitle" style="margin-bottom: 5px;" data-i18n="map_title">📍 Location</h2>
+            <p id="mapFlyoverSubtitle" class="subtitle" style="margin-bottom: 15px;" data-i18n="map_sub">Zooming into memory...</p>
             <div id="flyoverMapContainer" style="flex: 1; border-radius: 15px; border: 1px solid var(--glass-border); width: 100%; z-index: 1;"></div>
             <div class="modal-buttons" style="margin-top: 15px;">
-                <button type="button" class="btn-primary glowing-pink" id="closeMapFlyoverBtn">Close Map</button>
+                <button type="button" class="btn-primary glowing-pink" id="closeMapFlyoverBtn" data-i18n="close_map">Close Map</button>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/config.js?v=3"></script>
-    <script src="js/app.js?v=3"></script>
-    <script src="js/memory.js?v=3"></script>
+    <script src="js/config.js?v=9"></script>
+    <script src="js/i18n.js?v=9"></script>
+    <script src="js/app.js?v=9"></script>
+    <script src="js/memory.js?v=9"></script>
 </body>
 </html>
