@@ -1,5 +1,7 @@
 :root {
     /* Fluid Dreamy Aurora Theme */
+    --primary-color: #ff7b9a;
+    --secondary-color: #ffd4a2;
     --text-main: #2a1f2d;
     --text-muted: #726277;
     
@@ -36,8 +38,8 @@ body {
 }
 
 body.timeline-page {
-    /* Mocha Velvet Theme (Infinite 8K Vector SVG) */
-    background: #2a1f2d url('../assets/bg-premium.svg') no-repeat center center fixed;
+    /* Premium 4k Crisp Landscape Background */
+    background: #000 url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
     background-size: cover;
     color: #ffffff;
 }
@@ -613,27 +615,47 @@ body::before {
 }
 
 .modal-content {
-    background: rgba(30, 22, 18, 0.95);
-    border: 1px solid rgba(255, 212, 162, 0.15);
+    background: rgba(25, 15, 20, 0.65);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 123, 154, 0.25);
     border-radius: 24px;
     padding: 40px;
     width: 90%;
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 123, 154, 0.05);
+}
+
+/* Hide the ugly default browser scrollbar and make it sleek! */
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+.modal-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    margin: 10px;
+}
+.modal-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 123, 154, 0.3);
+    border-radius: 10px;
+}
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 123, 154, 0.6);
 }
 
 .modal-content h2 {
-    font-size: 1.8rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 800;
     margin-bottom: 5px;
-    color: #FFD4A2;
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 123, 154, 0.6);
 }
 
 .modal-content .subtitle {
     font-size: 1rem;
-    color: rgba(255, 212, 162, 0.5);
+    color: rgba(255, 123, 154, 0.8);
     margin-bottom: 30px;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -642,7 +664,8 @@ body::before {
 
 /* Dark-mode form inputs for the modal */
 .modal-content .form-group label {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
 }
 
 .modal-content .form-group input,
@@ -650,8 +673,9 @@ body::before {
 .modal-content .form-group select {
     width: 100%;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 212, 162, 0.15);
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 123, 154, 0.2);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
     border-radius: 12px;
     color: #ffffff;
     font-family: 'Outfit';
@@ -673,32 +697,42 @@ body::before {
 .modal-content .form-group textarea:focus,
 .modal-content .form-group select:focus {
     outline: none;
-    border-color: #FFD4A2;
-    background: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 0 15px rgba(255, 212, 162, 0.15);
+    border-color: #ff7b9a;
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 15px rgba(255, 123, 154, 0.4), inset 0 2px 6px rgba(0,0,0,0.6);
 }
 
 /* Photo upload area */
 .photo-upload-area {
-    border: 2px dashed rgba(255, 212, 162, 0.25);
+    background: linear-gradient(135deg, rgba(255, 123, 154, 0.05), rgba(255, 212, 162, 0.05));
+    border: 2px dashed rgba(255, 123, 154, 0.3);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
     border-radius: 16px;
     padding: 30px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    color: rgba(255, 212, 162, 0.5);
+    color: rgba(255, 255, 255, 0.6);
     font-size: 1rem;
 }
 
 .photo-upload-area:hover {
-    border-color: #FFD4A2;
-    background: rgba(255, 212, 162, 0.05);
+    border-color: #ff7b9a;
+    background: linear-gradient(135deg, rgba(255, 123, 154, 0.15), rgba(255, 212, 162, 0.15));
+    box-shadow: inset 0 0 30px rgba(255, 123, 154, 0.15);
+    transform: translateY(-2px);
+    color: white;
 }
 
 .photo-upload-area .upload-icon {
-    font-size: 2.5rem;
+    font-size: 3rem;
     display: block;
     margin-bottom: 10px;
+    filter: drop-shadow(0 2px 8px rgba(255, 123, 154, 0.4));
+    transition: transform 0.3s ease;
+}
+.photo-upload-area:hover .upload-icon {
+    transform: scale(1.1);
 }
 
 .photo-preview {
@@ -725,23 +759,25 @@ body::before {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 212, 162, 0.15);
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 123, 154, 0.15);
     cursor: pointer;
     font-size: 1.8rem;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 2px 5px rgba(0,0,0,0.3);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .mood-pill:hover {
-    background: rgba(255, 212, 162, 0.15);
+    background: rgba(255, 123, 154, 0.2);
+    border-color: #ff7b9a;
+    box-shadow: 0 5px 15px rgba(255, 123, 154, 0.3);
     transform: translateY(-8px) scale(1.1);
 }
 
 .mood-pill.selected {
-    background: rgba(255, 212, 162, 0.3);
-    border: 2px solid #FFD4A2;
-    box-shadow: 0 15px 25px rgba(255, 212, 162, 0.4), inset 0 2px 10px rgba(255,255,255,0.2);
+    background: rgba(255, 123, 154, 0.4);
+    border: 2px solid #ff7b9a;
+    box-shadow: 0 10px 25px rgba(255, 123, 154, 0.6), inset 0 2px 10px rgba(255,255,255,0.3);
     transform: translateY(-10px) scale(1.15);
 }
 
@@ -763,14 +799,18 @@ body::before {
     font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #fff;
-    transition: background 0.2s;
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--primary-color);
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    transform: translateY(-3px);
 }
 
 /* Location Autocomplete Dropdown */
