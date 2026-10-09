@@ -17,9 +17,54 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Our Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=8">
+    <link rel="stylesheet" href="css/style.css?v=16">
+    <style>
+        /* NEW MOCKUP: Desktop 3-Column Layout */
+        .desktop-wrapper {
+            max-width: 1200px;
+            margin: 2rem auto;
+            display: grid;
+            grid-template-columns: 280px 1fr 280px;
+            gap: 2rem;
+            padding: 0 1rem;
+            align-items: start;
+        }
+        .sidebar-panel {
+            background: rgba(30, 20, 20, 0.4);
+            border: 1px solid rgba(255, 212, 162, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .center-feed {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .sidebar-title {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            margin: 0 0 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+        
+        /* Mobile: Hide sidebars and use single column */
+        @media (max-width: 992px) {
+            .desktop-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .sidebar-panel { display: none; }
+        }
+    </style>
 </head>
-<body class="timeline-page">
+<body class="timeline-page" style="background: #111;">
+    <!-- 3D Interactive WebGL Canvas Layer -->
+    <div id="vanta-bg" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -3;"></div>
+    
     <header class="timeline-header">
         <h1 data-i18n="title">💕 Dating Memories</h1>
         <div style="display: flex; gap: 1rem; align-items: center;">
@@ -28,8 +73,50 @@
         </div>
     </header>
 
-    <!-- Phase 6+: Dashboard & Controls -->
-    <div class="dashboard-header hidden" id="dashboardHeader">
+    <div class="desktop-wrapper">
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar-panel">
+            <div>
+                <h3 class="sidebar-title">Our Profile 👩‍❤️‍👨</h3>
+                <div style="text-align: center; margin-top: 15px; position: relative;">
+                    <!-- Hide actual file input, style a beautiful overlay -->
+                    <input type="file" id="profilePicUpload" accept="image/*" style="display: none;">
+                    <label for="profilePicUpload" style="cursor: pointer; display: block; width: 100px; height: 100px; border-radius: 50%; margin: 0 auto; position: relative; overflow: hidden; border: 2px dashed rgba(255, 123, 154, 0.4); background: rgba(0,0,0,0.2); transition: all 0.3s ease;">
+                        <div style="position: absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color: #fff;">
+                            <span style="font-size: 1.5rem;">📷</span>
+                            <span style="font-size: 0.75rem; margin-top: 5px;">Upload Photo</span>
+                        </div>
+                    </label>
+                    <!-- Dynamic User Editable Profile -->
+                    <input type="text" id="profileName" value="Chen & Partner" style="margin: 10px 0 0 0; background: transparent; border: none; color: white; font-size: 1rem; font-weight: bold; text-align: center; width: 100%; font-family: inherit;">
+                    <input type="text" id="profileEst" value="Est. 2021" placeholder="Add Est. Year" style="margin: 3px auto 0 auto; background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: #aaa; font-size: 0.85rem; text-align: center; width: 100px; padding: 2px 6px; border-radius: 6px; display: block; font-family: inherit; transition: border 0.2s;">
+                </div>
+            </div>
+            
+            <div style="padding: 15px; border: 1px solid rgba(255,123,154,0.2); border-radius: 12px; margin-top: 10px; background: rgba(0,0,0,0.2);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin:0; color: var(--primary-color); font-size: 1rem;">Custom Timers ⏳</h3>
+                    <button class="btn-text" style="font-size: 1.2rem; padding: 0; color: white;">+</button>
+                </div>
+                
+                <!-- Mockup of a Count UP timer -->
+                <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.1);">
+                    <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #bbb;">Since First Date (Count Up)</p>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: white;">842 <span style="font-size: 0.8rem; font-weight: normal; color: #aaa;">Days</span></div>
+                </div>
+
+                <!-- Mockup of a Count DOWN timer -->
+                <div>
+                    <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #bbb;">Next Anniversary (Countdown)</p>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: white;">45 <span style="font-size: 0.8rem; font-weight: normal; color: var(--primary-color);">Days Left</span></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER FEED -->
+        <div class="center-feed">
+            <!-- Phase 6+: Dashboard & Controls -->
+            <div class="dashboard-header hidden" id="dashboardHeader" style="margin-top: 0;">
         <!-- Stats -->
         <div class="stats-panel">
             <div class="stat-item">
@@ -47,20 +134,79 @@
         </div>
 
         <!-- Controls -->
-        <div class="control-bar">
-            <input type="text" id="searchFilter" placeholder="Search memories..." autocomplete="off" data-i18n="search_ph">
-            <select id="yearFilter">
-                <option value="All" data-i18n="year_all">All Years</option>
-            </select>
+        <div class="control-bar" style="justify-content: space-between;">
+            <!-- Feature Tabs Fix -->
+            <div class="feature-tabs" style="display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <button style="background: rgba(255,123,154,0.25); color: white; border: 1px solid rgba(255,123,154,0.5); padding: 6px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">🕰️ Timeline</button>
+                <button style="background: transparent; color: #aaa; border: none; padding: 6px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: color 0.2s ease;">✨ Bucket List</button>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="searchFilter" placeholder="Search memories..." autocomplete="off" data-i18n="search_ph">
+                <select id="yearFilter">
+                    <option value="All" data-i18n="year_all">All Years</option>
+                </select>
+            </div>
         </div>
+
+        </div>
+
+    <!-- New: On This Day Mockup -->
+    <div id="onThisDayFeature" style="max-width: 600px; margin: 0 auto 2rem auto; background: rgba(15, 10, 20, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 123, 154, 0.4); border-radius: 16px; padding: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
+        <div style="font-size: 2.5rem; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));">🕰️</div>
+        <div>
+            <h3 style="margin: 0; color: var(--primary-color); font-size: 1.1rem; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">On This Day - 1 Year Ago</h3>
+            <p style="margin: 4px 0 0 0; font-size: 0.9rem; color: #ddd; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">You visited <b>Millennium Park</b> and had an incredible time. Click to look back it! 🥰</p>
+        </div>
+        <button class="btn-primary glowing-pink" style="margin-left: auto; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center;">→</button>
     </div>
 
-    <main class="timeline-container" id="timeline">
-        <div class="empty-state" id="emptyState" class="hidden">
-            <h2 data-i18n="no_memories">No memories yet 💕</h2>
-            <p data-i18n="add_first">Tap the + button below to add your first date memory.</p>
-        </div>
-    </main>
+        <main class="timeline-container" id="timeline" style="margin-top: 0; padding-top: 0;">
+            <div class="empty-state" id="emptyState" class="hidden">
+                <h2 data-i18n="no_memories">No memories yet 💕</h2>
+                <p data-i18n="add_first">Tap the + button below to add your first date memory.</p>
+            </div>
+        </main>
+        </div> <!-- End Center Feed -->
+
+        <!-- RIGHT SIDEBAR -->
+        <aside class="sidebar-panel">
+            <div>
+                <h3 class="sidebar-title">Upcoming Plans ✨</h3>
+                <ul style="list-style: none; padding: 0; margin: 10px 0 0 0;">
+                    <li onclick="document.getElementById('planDetailsModal').classList.remove('hidden')" style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: background 0.3s ease;" onmouseover="this.style.background='rgba(255,123,154,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                        <span style="font-size: 1.5rem;">🗼</span>
+                        <div>
+                            <b style="color: white; font-size: 0.9rem;">Japan Trip</b>
+                            <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Bucket List</p>
+                        </div>
+                    </li>
+                    <li onclick="document.getElementById('planDetailsModal').classList.remove('hidden')" style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: background 0.3s ease;" onmouseover="this.style.background='rgba(255,123,154,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                        <span style="font-size: 1.5rem;">🍝</span>
+                        <div>
+                            <b style="color: white; font-size: 0.9rem;">Try New Pasta Place</b>
+                            <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Date Idea</p>
+                        </div>
+                    </li>
+                </ul>
+                <button class="btn-text" style="width: 100%; text-align: left; margin-top: 5px; color: #ff7b9a; padding: 4px;">+ Add New Plan</button>
+            </div>
+            
+            <div style="margin-top: auto; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 12px; border: 1px solid rgba(255,123,154,0.3); backdrop-filter: blur(10px);">
+                <h3 style="margin:0 0 10px 0; color: white; font-size: 1rem;">✨ Premium 3D Atmospheres</h3>
+                <p style="margin: 0 0 10px 0; font-size: 0.8rem; color: #ddd;">Immersive daytime and sunset 3D physics engines.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="btn-secondary" onclick="window.setRomanticFX('waves_light')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,123,154,0.5); background: rgba(255,123,154,0.2); color: white;">🌊 Dusky Silk Waves</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('clouds_sunset')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;">☁️ Twilight Clouds</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('birds_dawn')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;">🦅 Birds at Dusk</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('stars_dark')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;">🌌 Starry Night</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('cats_dark')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;">🐈 Siamese Cats</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('sakura')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;">🌸 Falling Sakura</button>
+                </div>
+            </div>
+        </aside>
+    </div> <!-- End Desktop Wrapper -->
     
     <!-- Floating 'Add Memory' Button -->
     <button id="fabAdd" class="fab glowing-pink">+</button>
@@ -140,6 +286,68 @@
             </form>
         </div>
     </div>
+
+    <!-- UPCOMING PLAN INTERACTIVE DETAILS MODAL -->
+    <div id="planDetailsModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 550px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                <div>
+                    <h2 id="planModalTitle" style="margin-bottom: 2px;">🗼 Japan Trip</h2>
+                    <p id="planModalSubtitle" class="subtitle" style="margin-bottom: 5px; color: var(--primary-color);">Bucket List</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--primary-color); font-size: 0.8rem; font-weight: bold; color: white;">In Progress</div>
+            </div>
+            
+            <!-- Checklist Section -->
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="color: white; font-weight: 600; display: block; margin-bottom: 10px; font-size: 1.05rem;">📋 Plan Checklist</label>
+                <div style="background: rgba(0, 0, 0, 0.4); border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);">
+                    
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <input type="checkbox" style="width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer;">
+                        <span style="color: white; font-size: 1rem;">Book Shinkansen Train Tickets</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <input type="checkbox" style="width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer;" checked>
+                        <span style="color: #aaa; text-decoration: line-through; font-size: 1rem;">Reserve Tokyo Hotel</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 0;">
+                        <input type="checkbox" style="width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer;">
+                        <span style="color: white; font-size: 1rem;">Pack Passports</span>
+                    </label>
+                    
+                    <div style="margin-top: 10px; display: flex; gap: 8px;">
+                        <input type="text" placeholder="Add a new task..." style="flex: 1; min-width: 0; padding: 10px; border-radius: 8px; font-size: 0.9rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; outline: none;">
+                        <button style="background: var(--primary-color); border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 1.2rem; cursor: pointer; padding: 0 20px; flex-shrink: 0; transition: 0.2s;">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes / Comments Section -->
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="color: white; font-weight: 600; display: block; margin-bottom: 10px; font-size: 1.05rem;">💬 Discussion & Notes</label>
+                
+                <div style="background: rgba(0, 0, 0, 0.4); border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 2px 6px rgba(0,0,0,0.5); max-height: 180px; overflow-y: auto; margin-bottom: 10px;">
+                    <!-- Example Chat / Note Bubble -->
+                    <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--primary-color); padding: 10px 15px; border-radius: 15px; border-bottom-left-radius: 2px; margin-bottom: 10px; width: 85%;">
+                        <div style="font-size: 0.75rem; color: var(--primary-color); margin-bottom: 3px;">You • Oct 10</div>
+                        <div style="color: white; font-size: 0.95rem;">Hey! We need to make sure we leave space in our luggage for souvenirs from Akihabara!</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 8px; align-items: stretch;">
+                    <textarea placeholder="Write a note or detail..." style="flex: 1; min-width: 0; min-height: 45px; height: 45px; padding: 10px; border-radius: 8px; font-size: 0.9rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: white; resize: none; outline: none;"></textarea>
+                    <button style="background: var(--primary-color); border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 0.95rem; cursor: pointer; padding: 0 20px; flex-shrink: 0; transition: 0.2s;">Send</button>
+                </div>
+            </div>
+
+            <div class="modal-buttons" style="margin-top: 30px; display: flex; gap: 10px;">
+                <button type="button" class="btn-secondary" style="flex: 1; min-height: 45px; font-size: 1rem; margin: 0;" onclick="document.getElementById('planDetailsModal').classList.add('hidden')">Close</button>
+                <button type="button" class="btn-primary" style="flex: 1; min-height: 45px; font-size: 1rem; margin: 0; display: flex; justify-content: center; align-items: center; gap: 8px;">✔ Mark Completed</button>
+            </div>
+        </div>
+    </div>
+
     <!-- INTERACTIVE MAP FLYOVER MODAL -->
     <div id="mapFlyoverModal" class="modal-overlay hidden">
         <div class="modal-content" style="width: 95%; max-width: 900px; height: 85vh; display: flex; flex-direction: column;">
@@ -154,9 +362,143 @@
 
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/config.js?v=9"></script>
-    <script src="js/i18n.js?v=9"></script>
-    <script src="js/app.js?v=9"></script>
+    
+    <!-- Three.js + Vanta + tsParticles Native 3D Engines -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.ripples@0.6.3/dist/jquery.ripples.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.waves.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.clouds.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
+
+    <script src="js/config.js?v=16"></script>
+    <script src="js/i18n.js?v=16"></script>
+    <script src="js/app.js?v=16"></script>
+    
+    <!-- Inline Initializer for Premium FX Mockup -->
+    <script>
+        window.active3D = null;
+
+        window.setRomanticFX = async function(effect) {
+            
+            // Clean up UI buttons seamlessly 
+            document.querySelectorAll('[onclick^="window.setRomanticFX"]').forEach(btn => {
+                btn.style.background = 'transparent';
+                btn.style.borderColor = 'rgba(255,255,255,0.2)';
+            });
+            const activeBtn = document.querySelector(`[onclick="window.setRomanticFX('${effect}')"]`);
+            if (activeBtn) {
+                activeBtn.style.background = 'rgba(255,123,154,0.2)';
+                activeBtn.style.borderColor = 'rgba(255,123,154,0.5)';
+            }
+
+            // Cleanup any active instances
+            if (window.active3D && window.active3D.destroy) {
+                window.active3D.destroy();
+                window.active3D = null;
+            }
+            if (window.tsParticles && tsParticles.dom && tsParticles.dom().length > 0) {
+                tsParticles.dom().forEach(p => p.destroy());
+            }
+            
+            const container = document.getElementById('vanta-bg');
+            container.innerHTML = ""; // target clear
+            
+            // Force pure white base for the bright Vanta themes
+            if (effect.includes('waves') || effect.includes('clouds') || effect.includes('birds')) {
+                container.style.background = "#2a1e23"; // Dusky muted rose/dark instead of pure white
+            } else {
+                container.style.background = "#111"; // Fallback for dark particles
+            }
+
+            if (effect === 'waves_light') {
+                window.active3D = VANTA.WAVES({
+                    el: "#vanta-bg",
+                    mouseControls: true, touchControls: true, gyroControls: false,
+                    minHeight: 200.00, minWidth: 200.00,
+                    scale: 1.00, scaleMobile: 1.00,
+                    color: 0x8a5b6d, /* Dusky wave highlights */
+                    shininess: 35.00, waveHeight: 20.00, waveSpeed: 0.60,
+                    backgroundColor: 0x3d2b33 /* Muted deep rose */
+                });
+            } else if (effect === 'clouds_sunset') {
+                window.active3D = VANTA.CLOUDS({
+                    el: "#vanta-bg",
+                    mouseControls: true, touchControls: true, gyroControls: false,
+                    minHeight: 200.00, minWidth: 200.00,
+                    backgroundColor: 0x3d2b33, /* Dark pastel sky */
+                    skyColor: 0x2a1e23, 
+                    cloudColor: 0x8a5b6d, /* Dusky pink clouds */
+                    cloudShadowColor: 0x1f1519, 
+                    sunColor: 0xff7b9a, sunGlareColor: 0xffd4a2, sunPosition: 0.60
+                });
+            } else if (effect === 'birds_dawn') {
+                window.active3D = VANTA.BIRDS({
+                    el: "#vanta-bg",
+                    mouseControls: true, touchControls: true, gyroControls: false,
+                    minHeight: 200.00, minWidth: 200.00,
+                    scale: 1.00, scaleMobile: 1.00,
+                    backgroundColor: 0x3d2b33, /* Dusky bg */
+                    color1: 0xff7b9a,
+                    color2: 0xffd4a2,
+                    birdSize: 1.50, wingSpan: 24.00, speedLimit: 4.00, separation: 46.00, alignment: 26.00, cohesion: 30.00, quantity: 4.00
+                });
+            } else if (effect === 'sakura') {
+                await tsParticles.load("vanta-bg", {
+                    particles: {
+                        number: { value: 40, density: { enable: true, value_area: 800 } },
+                        color: { value: ["#ffb7c5", "#ff6b9e", "#ffd4a2"] },
+                        shape: { type: "circle" },
+                        opacity: { value: 0.6, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false } },
+                        size: { value: 6, random: true, anim: { enable: true, speed: 2, size_min: 2, sync: false } },
+                        move: { enable: true, speed: 1.5, direction: "bottom-right", random: true, straight: false, out_mode: "out", bounce: false }
+                    },
+                    interactivity: { events: { onhover: { enable: true, mode: "repulse" } }, modes: { repulse: { distance: 100, duration: 0.4 } } },
+                    retina_detect: true
+                });
+            } else if (effect === 'stars_dark') {
+                await tsParticles.load("vanta-bg", {
+                    particles: {
+                        number: { value: 120, density: { enable: true, value_area: 800 } },
+                        color: { value: ["#ffffff", "#ffd4a2"] },
+                        shape: { type: "circle" },
+                        opacity: { value: 0.8, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false } },
+                        size: { value: 3, random: true, anim: { enable: true, speed: 2, size_min: 0.3, sync: false } },
+                        move: { enable: true, speed: 0.3, direction: "none", random: true, straight: false, out_mode: "out" }
+                    },
+                    interactivity: { events: { onhover: { enable: true, mode: "grab" } }, modes: { grab: { distance: 140, line_linked: { opacity: 0.5 } } } },
+                    retina_detect: true
+                });
+            } else if (effect === 'cats_dark') {
+                // Sleek, minimal dark background so the UI is flawlessly readable
+                container.style.background = "linear-gradient(135deg, #1f1519, #2a1e23)";
+                
+                // Fun, highly interactive floating emoji physics engine!
+                await tsParticles.load("vanta-bg", {
+                    particles: {
+                        number: { value: 35, density: { enable: true, value_area: 800 } },
+                        color: { value: "#ffffff" },
+                        shape: { type: "char", character: { value: ["🐈", "✨", "🐾", "⭐"], font: "Verdana", style: "", weight: "400" } },
+                        opacity: { value: 0.8, random: true, anim: { enable: true, speed: 1, opacity_min: 0.3, sync: false } },
+                        size: { value: 24, random: true, anim: { enable: true, speed: 1.5, size_min: 10, sync: false } },
+                        move: { enable: true, speed: 1, direction: "top", random: true, straight: false, out_mode: "out" }
+                    },
+                    interactivity: { 
+                        events: { onhover: { enable: true, mode: "bubble" }, onclick: { enable: true, mode: "repulse" } }, 
+                        modes: { 
+                            bubble: { distance: 200, size: 45, duration: 2 },
+                            repulse: { distance: 200, duration: 0.4 }
+                        } 
+                    },
+                    retina_detect: true
+                });
+            }
+        };
+
+        // Initialize default
+        document.addEventListener('DOMContentLoaded', () => window.setRomanticFX('waves_light'));
+    </script>
     <script src="js/memory.js?v=9"></script>
 </body>
 </html>
