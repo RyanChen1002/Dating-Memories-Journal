@@ -77,14 +77,14 @@
         <!-- LEFT SIDEBAR -->
         <aside class="sidebar-panel">
             <div>
-                <h3 class="sidebar-title">Our Profile 👩‍❤️‍👨</h3>
+                <h3 class="sidebar-title" data-i18n="our_profile">Our Profile 👩‍❤️‍👨</h3>
                 <div style="text-align: center; margin-top: 15px; position: relative;">
                     <!-- Hide actual file input, style a beautiful overlay -->
                     <input type="file" id="profilePicUpload" accept="image/*" style="display: none;">
                     <label for="profilePicUpload" style="cursor: pointer; display: block; width: 100px; height: 100px; border-radius: 50%; margin: 0 auto; position: relative; overflow: hidden; border: 2px dashed rgba(255, 123, 154, 0.4); background: rgba(0,0,0,0.2); transition: all 0.3s ease;">
                         <div style="position: absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color: #fff;">
                             <span style="font-size: 1.5rem;">📷</span>
-                            <span style="font-size: 0.75rem; margin-top: 5px;">Upload Photo</span>
+                            <span style="font-size: 0.75rem; margin-top: 5px;" data-i18n="upload_photo">Upload Photo</span>
                         </div>
                     </label>
                     <!-- Dynamic User Editable Profile -->
@@ -95,19 +95,19 @@
             
             <div style="padding: 15px; border: 1px solid rgba(255,123,154,0.2); border-radius: 12px; margin-top: 10px; background: rgba(0,0,0,0.2);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin:0; color: var(--primary-color); font-size: 1rem;">Custom Timers ⏳</h3>
+                    <h3 style="margin:0; color: var(--primary-color); font-size: 1rem;" data-i18n="custom_timers">Custom Timers ⏳</h3>
                     <button class="btn-text" style="font-size: 1.2rem; padding: 0; color: white;">+</button>
                 </div>
                 
                 <!-- Mockup of a Count UP timer -->
                 <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.1);">
-                    <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #bbb;">Since First Date (Count Up)</p>
+                    <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #bbb;" data-i18n="first_date">Since First Date (Count Up)</p>
                     <div style="font-size: 1.5rem; font-weight: 800; color: white;">842 <span style="font-size: 0.8rem; font-weight: normal; color: #aaa;">Days</span></div>
                 </div>
 
                 <!-- Mockup of a Count DOWN timer -->
                 <div>
-                    <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #bbb;">Next Anniversary (Countdown)</p>
+                    <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #bbb;" data-i18n="next_anniv">Next Anniversary (Countdown)</p>
                     <div style="font-size: 1.5rem; font-weight: 800; color: white;">45 <span style="font-size: 0.8rem; font-weight: normal; color: var(--primary-color);">Days Left</span></div>
                 </div>
             </div>
@@ -172,37 +172,37 @@
         <!-- RIGHT SIDEBAR -->
         <aside class="sidebar-panel">
             <div>
-                <h3 class="sidebar-title">Upcoming Plans ✨</h3>
+                <h3 class="sidebar-title" data-i18n="upcoming_plans">Upcoming Plans ✨</h3>
                 <ul style="list-style: none; padding: 0; margin: 10px 0 0 0;">
                     <li onclick="document.getElementById('planDetailsModal').classList.remove('hidden')" style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: background 0.3s ease;" onmouseover="this.style.background='rgba(255,123,154,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
                         <span style="font-size: 1.5rem;">🗼</span>
                         <div>
-                            <b style="color: white; font-size: 0.9rem;">Japan Trip</b>
-                            <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Bucket List</p>
+                            <b style="color: white; font-size: 0.9rem;" data-i18n="japan_trip">Japan Trip</b>
+                            <p style="margin: 0; color: #aaa; font-size: 0.8rem;" data-i18n="bucket_list">Bucket List</p>
                         </div>
                     </li>
                     <li onclick="document.getElementById('planDetailsModal').classList.remove('hidden')" style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: background 0.3s ease;" onmouseover="this.style.background='rgba(255,123,154,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
                         <span style="font-size: 1.5rem;">🍝</span>
                         <div>
-                            <b style="color: white; font-size: 0.9rem;">Try New Pasta Place</b>
-                            <p style="margin: 0; color: #aaa; font-size: 0.8rem;">Date Idea</p>
+                            <b style="color: white; font-size: 0.9rem;" data-i18n="pasta_place">Try New Pasta Place</b>
+                            <p style="margin: 0; color: #aaa; font-size: 0.8rem;" data-i18n="date_idea">Date Idea</p>
                         </div>
                     </li>
                 </ul>
-                <button class="btn-text" style="width: 100%; text-align: left; margin-top: 5px; color: #ff7b9a; padding: 4px;">+ Add New Plan</button>
+                <button class="btn-text" style="width: 100%; text-align: left; margin-top: 5px; color: #ff7b9a; padding: 4px;" data-i18n="add_plan">+ Add New Plan</button>
             </div>
             
             <div style="margin-top: auto; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 12px; border: 1px solid rgba(255,123,154,0.3); backdrop-filter: blur(10px);">
-                <h3 style="margin:0 0 10px 0; color: white; font-size: 1rem;">✨ Premium 3D Atmospheres</h3>
-                <p style="margin: 0 0 10px 0; font-size: 0.8rem; color: #ddd;">Immersive daytime and sunset 3D physics engines.</p>
+                <h3 style="margin:0 0 10px 0; color: white; font-size: 1rem;" data-i18n="premium_3d">✨ Premium 3D Atmospheres</h3>
+                <p style="margin: 0 0 10px 0; font-size: 0.8rem; color: #ddd;" data-i18n="premium_sub">Immersive daytime and sunset 3D physics engines.</p>
                 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <button class="btn-secondary" onclick="window.setRomanticFX('waves_light')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,123,154,0.5); background: rgba(255,123,154,0.2); color: white;">🌊 Dusky Silk Waves</button>
-                    <button class="btn-secondary" onclick="window.setRomanticFX('clouds_sunset')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;">☁️ Twilight Clouds</button>
-                    <button class="btn-secondary" onclick="window.setRomanticFX('birds_dawn')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;">🦅 Birds at Dusk</button>
-                    <button class="btn-secondary" onclick="window.setRomanticFX('stars_dark')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;">🌌 Starry Night</button>
-                    <button class="btn-secondary" onclick="window.setRomanticFX('cats_dark')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;">🐈 Siamese Cats</button>
-                    <button class="btn-secondary" onclick="window.setRomanticFX('sakura')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;">🌸 Falling Sakura</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('waves_light')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,123,154,0.5); background: rgba(255,123,154,0.2); color: white;" data-i18n="dusky_waves">🌊 Dusky Silk Waves</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('clouds_sunset')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;" data-i18n="twi_clouds">☁️ Twilight Clouds</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('birds_dawn')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;" data-i18n="birds_dusk">🦅 Birds at Dusk</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('stars_dark')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;" data-i18n="starry_night">🌌 Starry Night</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('cats_dark')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;" data-i18n="siamese_cats">🐈 Siamese Cats</button>
+                    <button class="btn-secondary" onclick="window.setRomanticFX('sakura')" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: white;" data-i18n="falling_sakura">🌸 Falling Sakura</button>
                 </div>
             </div>
         </aside>
