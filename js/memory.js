@@ -41,6 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
         editingMemoryId = null;
         document.querySelector('.modal-content h2').textContent = 'New Memory ✨';
         document.getElementById('saveMemoryBtn').textContent = 'Save Memory';
+        // BUG FIX 4: Block future dates — set max to today every time modal opens
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('memoryDate').max = todayStr;
         modal.classList.remove('hidden');
     });
 
@@ -62,9 +65,23 @@ document.addEventListener('DOMContentLoaded', () => {
         photoInput.click();
     });
 
+    // BUG FIX 2: Trap Enter key on date input so it doesn't accidentally submit the form
+    const memoryDateInput = document.getElementById('memoryDate');
+    if (memoryDateInput) {
+        memoryDateInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') e.preventDefault();
+        });
+    }
+
     photoInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        // BUG FIX 3: Allow all image types — validate MIME type explicitly
+        if (!file.type.startsWith('image/')) {
+            showMemoryStatus('Please upload a valid image file (JPG, PNG, HEIC, etc.)', 'error');
+            return;
+        }
 
         selectedFile = file;
 
@@ -176,6 +193,16 @@ document.addEventListener('DOMContentLoaded', () => {
             showMemoryStatus('Please select a mood!', 'error');
             return;
         }
+        // BUG FIX 2 + 4: Validate date — must exist and must not be in the future
+        const memDateVal = document.getElementById('memoryDate').value;
+        if (!memDateVal) {
+            showMemoryStatus('Please pick a date for this memory!', 'error');
+            return;
+        }
+        if (memDateVal > new Date().toISOString().split('T')[0]) {
+            showMemoryStatus('Memory date cannot be in the future!', 'error');
+            return;
+        }
 
         // Disable button while saving
         saveBtn.disabled = true;
@@ -197,11 +224,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 2. If a new photo was selected, upload it
             if (selectedFile) {
-                const compressedFile = await compressImage(selectedFile, 1200, 0.7);
-                const fileName = `${user.email}/${Date.now()}_${selectedFile.name}`;
+                // BUG FIX 3: Always compress to JPEG and normalize filename to avoid MIME mismatch
+                const compressedFile = await compressImage(selectedFile, 1200, 0.8);
+                const safeBaseName = selectedFile.name.replace(/\.[^.]+$/, ''); // strip extension
+                const fileName = `${user.email}/${Date.now()}_${safeBaseName}.jpg`;
                 const { error: uploadError } = await sb.storage
                     .from('memory-photos')
-                    .upload(fileName, compressedFile);
+                    .upload(fileName, compressedFile, {
+                        contentType: 'image/jpeg',
+                        upsert: false
+                    });
 
                 if (uploadError) throw uploadError;
 
