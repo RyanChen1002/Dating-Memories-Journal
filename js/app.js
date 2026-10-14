@@ -66,9 +66,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (loginError && loginError.message.includes('Invalid login credentials')) {
                 showStatus('Creating your new couple account...', 'info');
 
+                // BUG FIX 1: Use the live Vercel URL as the redirect target.
+                // Falls back to current origin so it works on both localhost and production.
+                const redirectUrl = window.location.origin.includes('localhost')
+                    ? window.location.origin + '/auth.html'
+                    : 'https://dating-memories-journal.vercel.app/auth.html';
+
                 const { data: signUpData, error: signUpError } = await sb.auth.signUp({
                     email: email,
-                    password: password
+                    password: password,
+                    options: {
+                        emailRedirectTo: redirectUrl
+                    }
                 });
 
                 if (signUpError) {
@@ -80,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Check if email confirmation is required
                 if (signUpData.user && !signUpData.session) {
-                    showStatus('Account created! Check your email to confirm, then log in.', 'success');
+                    showStatus('📧 Check your email inbox! We sent you a confirmation link to activate your couple account. Once confirmed, come back and log in.', 'success');
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Begin Sync';
                     return;
