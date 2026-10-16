@@ -66,6 +66,9 @@ button:disabled { opacity:.55; cursor:wait; transform:none!important; }
 .modal-content { max-height:88dvh; }
 .modal-content .status-message { overflow-wrap:anywhere; }
 .auth-box #signupSubmitBtn { margin-top:14px; width:100%; color:#693650; border-color:#b96b88; }
+.auth-container,.auth-box { min-width:0; }
+.auth-box-title,.auth-box .subtitle { overflow-wrap:anywhere; }
+.auth-box input { min-width:0; max-width:100%; }
 @media(max-width:1100px) {
  body.timeline-page .desktop-wrapper { grid-template-columns:minmax(0,1fr); max-width:760px; margin:16px auto; padding:0 14px; }
  body.timeline-page [data-panel] { display:none; }
