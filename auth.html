@@ -6,7 +6,7 @@
     <title>Login - Dating Memories Journal</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=17">
+    <link rel="stylesheet" href="css/style.css?v=18">
     
     <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -30,31 +30,68 @@
     <!-- Bottom: Premium White Glass Panel -->
     <div class="auth-container">
         <div class="auth-box glass-panel-premium">
-            <h2 class="auth-box-title" data-i18n="auth_title">Welcome Back 💕</h2>
-            <p class="subtitle" data-i18n="auth_sub">Initialize Connection</p>
+            <!-- SECTION 1: Standard Login / Sign Up -->
+            <div id="authSection">
+                <h2 class="auth-box-title" data-i18n="auth_title">Welcome Back 💕</h2>
+                <p class="subtitle" data-i18n="auth_sub">Initialize Connection</p>
+                
+                <form id="authForm">
+                    <div class="form-group">
+                        <label data-i18n="email">Couple's Shared Email</label>
+                        <input type="email" id="email" required placeholder="us@example.com" data-i18n="email_ph">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label data-i18n="password">Secret Password</label>
+                        <input type="password" id="password" required placeholder="••••••••" data-i18n="password_ph">
+                    </div>
+                    <div style="text-align: right; margin-bottom: 25px;">
+                        <a href="#" id="forgotPasswordLink" style="color: var(--primary-color, #ff7b9a); font-size: 0.85rem; font-weight: 600; text-decoration: none;" data-i18n="forgot_password">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="btn-primary glowing-pink" id="authSubmitBtn" data-i18n="begin_sync">Begin Sync</button>
+                </form>
+            </div>
+
+            <!-- SECTION 2: Reset Password Form -->
+            <div id="resetSection" class="hidden">
+                <h2 class="auth-box-title" data-i18n="reset_title">Reset Password 🔑</h2>
+                <p class="subtitle" data-i18n="reset_sub">Enter your email to receive a recovery link.</p>
+                
+                <form id="resetForm">
+                    <div class="form-group" style="margin-bottom: 25px;">
+                        <label data-i18n="email">Couple's Shared Email</label>
+                        <input type="email" id="resetEmail" required placeholder="us@example.com" data-i18n="email_ph">
+                    </div>
+                    <button type="submit" class="btn-primary glowing-pink" id="resetSubmitBtn" style="margin-bottom: 18px;" data-i18n="send_reset_btn">Send Reset Link 📧</button>
+                    <div>
+                        <a href="#" id="backToLoginLink" style="color: #666; font-size: 0.85rem; font-weight: 600; text-decoration: none;" data-i18n="back_to_login">← Back to Login</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- SECTION 3: Set New Password (via email recovery link) -->
+            <div id="newPasswordSection" class="hidden">
+                <h2 class="auth-box-title" data-i18n="new_pass_title">Set New Password 🔒</h2>
+                <p class="subtitle" data-i18n="new_pass_sub">Enter your new secret password below.</p>
+                
+                <form id="newPasswordForm">
+                    <div class="form-group" style="margin-bottom: 25px;">
+                        <label data-i18n="new_password">New Password</label>
+                        <input type="password" id="newPasswordInput" required minlength="6" placeholder="••••••••" data-i18n="password_ph">
+                    </div>
+                    <button type="submit" class="btn-primary glowing-pink" id="newPasswordSubmitBtn" data-i18n="update_pass_btn">Update Password & Log In ✨</button>
+                </form>
+            </div>
             
-            <form id="authForm">
-                <div class="form-group">
-                    <label data-i18n="email">Couple's Shared Email</label>
-                    <input type="email" id="email" required placeholder="us@example.com" data-i18n="email_ph">
-                </div>
-                <div class="form-group">
-                    <label data-i18n="password">Secret Password</label>
-                    <input type="password" id="password" required placeholder="••••••••" data-i18n="password_ph">
-                </div>
-                <button type="submit" class="btn-primary glowing-pink" id="authSubmitBtn" data-i18n="begin_sync">Begin Sync</button>
-            </form>
+            <div id="statusMessage" class="status-message hidden" style="margin-top: 20px;"></div>
             
-            <div id="statusMessage" class="status-message hidden"></div>
-            
-            <div class="auth-footer">
+            <div class="auth-footer" style="margin-top: 25px;">
                 Secured by Supabase
             </div>
         </div>
     </div>
 
-    <script src="js/config.js?v=17"></script>
-    <script src="js/i18n.js?v=17"></script>
-    <script src="js/app.js?v=17"></script>
+    <script src="js/config.js?v=18"></script>
+    <script src="js/i18n.js?v=18"></script>
+    <script src="js/app.js?v=18"></script>
 </body>
 </html>
