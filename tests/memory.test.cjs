@@ -1,0 +1,14 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const U=require('../js/journal-utils.js');
+test('date-only value retains day in local calendar',()=>assert.equal(U.day(U.parse('2025-04-20')),'2025-04-20'));
+test('invalid and non-leap dates rejected',()=>{assert.equal(U.parse('2025-02-29'),null);assert.equal(U.parse('2026-13-01'),null);assert.ok(U.parse('2024-02-29'));});
+test('earliest valid memory determines days together regardless of order',()=>assert.equal(U.daysTogether([{date:'2026-12-25'},{date:'2026-04-20'},{date:'2026-04-25'}],null,'2026-04-30'),10));
+test('explicit start overrides memories and future start is clamped',()=>{assert.equal(U.daysTogether([],'2026-04-01','2026-04-30'),29);assert.equal(U.daysTogether([],'2026-05-01','2026-04-30'),0);});
+test('year boundary is not shifted by timezone',()=>assert.equal(U.day(U.parse('2026-01-01')).slice(0,4),'2026'));
+test('calendar day difference is DST independent',()=>assert.equal(U.ordinal('2026-03-09')-U.ordinal('2026-03-08'),1));
+test('zero latitude/longitude is a valid location',()=>{assert.ok(U.coordinates(0,0));assert.ok(!U.coordinates(null,0));assert.ok(!U.coordinates(91,0));});
+test('unsafe photo URL schemes are blocked',()=>{assert.equal(U.safeURL('javascript:alert(1)'), '');assert.equal(U.safeURL('data:text/html,x'),'');assert.match(U.safeURL('https://example.com/photo.jpg'),/^https:/);});
+test('mixed old and private photos are preserved',()=>assert.equal(U.photos({photo_url:'https://example.com/old.jpg',photo_urls:[{bucket:'journal-media',path:'uid/new.jpg'}]}).length,2));
+test('future dates, empty captions, oversized mood rejected',()=>{const data={date:'2026-10-01',caption:'Our day',location_name:'Park',mood:'🌷'};assert.equal(U.validateMemory(data,'2026-10-02'),null);assert.equal(U.validateMemory({...data,date:'2026-10-03'},'2026-10-02'),'invalid_date');assert.equal(U.validateMemory({...data,caption:' '},'2026-10-02'),'invalid_caption');assert.equal(U.validateMemory({...data,mood:'x'.repeat(17)},'2026-10-02'),'invalid_mood');});
+test('ZIP export has valid local header, CRC, central directory and payload',async()=>{const zip=await U.zip([{name:'journal.json',blob:new Blob(['{}'])}]);const bytes=new Uint8Array(await zip.arrayBuffer()),v=new DataView(bytes.buffer);assert.equal(v.getUint32(0,true),0x04034b50);assert.equal(v.getUint32(14,true),U.crc32(new TextEncoder().encode('{}')));assert.equal(v.getUint32(bytes.length-22,true),0x06054b50);assert.equal(v.getUint16(bytes.length-14,true),1);assert.ok(new TextDecoder().decode(bytes).includes('{}'));});

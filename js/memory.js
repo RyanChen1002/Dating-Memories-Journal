@@ -1,553 +1,168 @@
-// Phase 3: Add Memory Logic — Upload photo to Supabase Storage, then save record to DB
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    const sb = window.supabaseClient;
-
-    // --- SECURITY UTILITY ---
-    function escapeHTML(str) {
-        if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    // --- DOM ELEMENTS ---
-    const fabAdd = document.getElementById('fabAdd');
-    const modal = document.getElementById('addMemoryModal');
-    const cancelBtn = document.getElementById('cancelMemoryBtn');
-    const memoryForm = document.getElementById('memoryForm');
-    const photoDropZone = document.getElementById('photoDropZone');
-    const photoInput = document.getElementById('photoInput');
-    const photoPreview = document.getElementById('photoPreview');
-    const moodSelector = document.getElementById('moodSelector');
-    const statusMsg = document.getElementById('memoryStatusMsg');
-
-    // Guard: only run on timeline page
-    if (!fabAdd || !modal) return;
-
-    let selectedMood = '';
-    let selectedFile = null;
-    let editingMemoryId = null; 
-    let selectedLat = null;
-    let selectedLng = null;
-    let allMemories = []; // Source of truth for filtering
-
-    // --- OPEN / CLOSE MODAL ---
-    fabAdd.addEventListener('click', () => {
-        editingMemoryId = null;
-        document.querySelector('.modal-content h2').textContent = 'New Memory ✨';
-        document.getElementById('saveMemoryBtn').textContent = 'Save Memory';
-        // BUG FIX 4: Block future dates — set max to today every time modal opens
-        const todayStr = new Date().toISOString().split('T')[0];
-        document.getElementById('memoryDate').max = todayStr;
-        modal.classList.remove('hidden');
-    });
-
-    cancelBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        resetForm();
-    });
-
-    // Close modal if clicking outside the form
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.add('hidden');
-            resetForm();
-        }
-    });
-
-    // --- PHOTO UPLOAD ---
-    photoDropZone.addEventListener('click', () => {
-        photoInput.click();
-    });
-
-    // BUG FIX 2: Trap Enter key on date input so it doesn't accidentally submit the form
-    const memoryDateInput = document.getElementById('memoryDate');
-    if (memoryDateInput) {
-        memoryDateInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') e.preventDefault();
-        });
-    }
-
-    photoInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        // BUG FIX 3: Allow all image types — validate MIME type explicitly
-        if (!file.type.startsWith('image/')) {
-            showMemoryStatus('Please upload a valid image file (JPG, PNG, HEIC, etc.)', 'error');
-            return;
-        }
-
-        selectedFile = file;
-
-        // Show preview
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            photoPreview.src = ev.target.result;
-            photoPreview.classList.remove('hidden');
-            photoDropZone.innerHTML = '<span class="upload-icon">✅</span><span>Photo selected! Click to change.</span>';
-        };
-        reader.readAsDataURL(file);
-    });
-
-    // --- MOOD SELECTOR ---
-    moodSelector.addEventListener('click', (e) => {
-        const pill = e.target.closest('.mood-pill');
-        if (!pill) return;
-
-        // Deselect all, then select clicked one
-        document.querySelectorAll('.mood-pill').forEach(p => p.classList.remove('selected'));
-        if (document.getElementById('addCustomMoodBtn')) {
-            document.getElementById('addCustomMoodBtn').style.border = '';
-            document.getElementById('addCustomMoodBtn').textContent = 'Use';
-        }
-        pill.classList.add('selected');
-        selectedMood = pill.dataset.mood;
-    });
-
-    const customMoodInput = document.getElementById('customMoodInput');
-    const addCustomMoodBtn = document.getElementById('addCustomMoodBtn');
-    
-    if (addCustomMoodBtn) {
-        addCustomMoodBtn.addEventListener('click', () => {
-            const val = customMoodInput.value.trim();
-            if (val) {
-                document.querySelectorAll('.mood-pill').forEach(p => p.classList.remove('selected'));
-                selectedMood = val;
-                addCustomMoodBtn.textContent = 'Use ' + val;
-                addCustomMoodBtn.style.border = '2px solid var(--primary-pink)';
-                customMoodInput.value = '';
-            }
-        });
-    }
-
-    // --- LOCATION AUTOCOMPLETE (OpenStreetMap Nominatim) ---
-    const locationInput = document.getElementById('memoryLocation');
-    const locationSuggestions = document.getElementById('locationSuggestions');
-    let debounceTimer;
-
-    locationInput.addEventListener('input', (e) => {
-        clearTimeout(debounceTimer);
-        const query = e.target.value.trim();
-        if (query.length < 3) {
-            locationSuggestions.classList.add('hidden');
-            return;
-        }
-
-        debounceTimer = setTimeout(async () => {
-            try {
-                // Fetch from free OpenStreetMap API (supporting English and Chinese uniformly)
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&accept-language=en,zh`);
-                const results = await response.json();
-                
-                locationSuggestions.innerHTML = '';
-                if (results.length > 0) {
-                    locationSuggestions.classList.remove('hidden');
-                    results.forEach(place => {
-                        const li = document.createElement('li');
-                        const addr = place.address || {};
-                        const mainName = escapeHTML(place.name || addr.road || addr.city || addr.town || 'Location');
-                        const subName = escapeHTML([addr.city || addr.town, addr.state, addr.country].filter(Boolean).join(', '));
-                        
-                        li.innerHTML = `<span>📍</span> <div>${mainName} <br><span>${subName}</span></div>`;
-                        li.addEventListener('click', () => {
-                            locationInput.value = mainName + (addr.city ? ', ' + addr.city : '');
-                            selectedLat = place.lat;
-                            selectedLng = place.lon;
-                            locationSuggestions.classList.add('hidden');
-                        });
-                        locationSuggestions.appendChild(li);
-                    });
-                } else {
-                    locationSuggestions.classList.add('hidden');
-                }
-            } catch(error) {
-                console.error("Location search failed", error);
-            }
-        }, 500); // Wait 500ms after they stop typing
-    });
-
-    // Close location dropdown if clicking anywhere else
-    document.addEventListener('click', (e) => {
-        if (!locationInput.contains(e.target) && !locationSuggestions.contains(e.target)) {
-            locationSuggestions.classList.add('hidden');
-        }
-    });
-
-    // --- FORM SUBMIT: SAVE OR UPDATE MEMORY TO CLOUD ---
-    memoryForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const saveBtn = document.getElementById('saveMemoryBtn');
-
-        if (!editingMemoryId && !selectedFile) {
-            showMemoryStatus('Please upload a photo of your date!', 'error');
-            return;
-        }
-        if (!selectedMood) {
-            showMemoryStatus('Please select a mood!', 'error');
-            return;
-        }
-        // BUG FIX 2 + 4: Validate date — must exist and must not be in the future
-        const memDateVal = document.getElementById('memoryDate').value;
-        if (!memDateVal) {
-            showMemoryStatus('Please pick a date for this memory!', 'error');
-            return;
-        }
-        if (memDateVal > new Date().toISOString().split('T')[0]) {
-            showMemoryStatus('Memory date cannot be in the future!', 'error');
-            return;
-        }
-
-        // Disable button while saving
-        saveBtn.disabled = true;
-        saveBtn.textContent = editingMemoryId ? 'Updating...' : 'Uploading...';
-
-        try {
-            // 1. Get current user
-            const { data: { user } } = await sb.auth.getUser();
-
-            // Build the base update payload (no photo yet)
-            const payload = {
-                date: document.getElementById('memoryDate').value,
-                caption: document.getElementById('memoryCaption').value,
-                location_name: document.getElementById('memoryLocation').value,
-                location_lat: selectedLat,
-                location_lng: selectedLng,
-                mood: selectedMood,
-            };
-
-            // 2. If a new photo was selected, upload it
-            if (selectedFile) {
-                // BUG FIX 3: Always compress to JPEG and normalize filename to avoid MIME mismatch
-                const compressedFile = await compressImage(selectedFile, 1200, 0.8);
-                const safeBaseName = selectedFile.name.replace(/\.[^.]+$/, ''); // strip extension
-                const fileName = `${user.email}/${Date.now()}_${safeBaseName}.jpg`;
-                const { error: uploadError } = await sb.storage
-                    .from('memory-photos')
-                    .upload(fileName, compressedFile, {
-                        contentType: 'image/jpeg',
-                        upsert: false
-                    });
-
-                if (uploadError) throw uploadError;
-
-                const { data: urlData } = sb.storage
-                    .from('memory-photos')
-                    .getPublicUrl(fileName);
-
-                payload.photo_url = urlData.publicUrl;
-            }
-
-            // 3. INSERT or UPDATE depending on mode
-            if (editingMemoryId) {
-                // EDIT MODE: update the existing row
-                const { error: updateError } = await sb
-                    .from('memories')
-                    .update(payload)
-                    .eq('id', editingMemoryId);
-
-                if (updateError) {
-                    window.logEvent('memory_error', 'Database failed to update existing memory', { error: updateError.message });
-                    throw updateError;
-                }
-                window.logEvent('memory_update', 'User edited an existing timeline memory', { location: payload.location_name });
-                showMemoryStatus('Memory updated! 💕', 'success');
-            } else {
-                // ADD MODE: insert a brand new row
-                payload.user_id = user.id;
-                const { error: insertError } = await sb.from('memories').insert(payload);
-                if (insertError) {
-                    window.logEvent('memory_error', 'Database rejected new memory creation', { error: insertError.message });
-                    throw insertError;
-                }
-                window.logEvent('memory_create', 'New chronological memory uploaded successfully', { location: payload.location_name });
-                showMemoryStatus('Memory saved to the cloud! 💕', 'success');
-            }
-
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                resetForm();
-                loadTimeline();
-            }, 1200);
-
-        } catch (err) {
-            console.error('Save error:', err);
-            showMemoryStatus('Error: ' + err.message, 'error');
-        } finally {
-            saveBtn.disabled = false;
-            saveBtn.textContent = editingMemoryId ? 'Update Memory' : 'Save Memory';
-        }
-    });
-
-    // --- UTILITY: SHOW STATUS MESSAGE ---
-    function showMemoryStatus(msg, type) {
-        statusMsg.textContent = msg;
-        statusMsg.className = 'status-message ' + type;
-        statusMsg.classList.remove('hidden');
-    }
-
-    // --- COMPRESS IMAGE UTILITY ---
-    function compressImage(file, maxWidth, quality) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            const reader = new FileReader();
-
-            reader.onload = (e) => {
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-
-                    // Scale down if too wide
-                    if (width > maxWidth) {
-                        height = (height * maxWidth) / width;
-                        width = maxWidth;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    canvas.toBlob((blob) => {
-                        resolve(blob);
-                    }, 'image/jpeg', quality);
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-
-    // --- RESET FORM ---
-    function resetForm() {
-        memoryForm.reset();
-        selectedFile = null;
-        selectedMood = '';
-        editingMemoryId = null;
-        selectedLat = null;
-        selectedLng = null;
-        photoPreview.classList.add('hidden');
-        photoPreview.src = '';
-        photoDropZone.innerHTML = '<span class="upload-icon">📷</span><span>Click to upload a photo</span>';
-        document.querySelectorAll('.mood-pill').forEach(p => p.classList.remove('selected'));
-        if (document.getElementById('addCustomMoodBtn')) {
-            document.getElementById('addCustomMoodBtn').style.border = '';
-            document.getElementById('addCustomMoodBtn').textContent = 'Use';
-        }
-        statusMsg.classList.add('hidden');
-        statusMsg.textContent = '';
-        document.querySelector('.modal-content h2').textContent = 'New Memory ✨';
-        document.getElementById('saveMemoryBtn').textContent = 'Save Memory';
-    }
-
-    // --- LOAD TIMELINE & DASHBOARD ---
-    async function loadTimeline() {
-        const timeline = document.getElementById('timeline');
-        timeline.innerHTML = '<div class="empty-state">Loading timeline...</div>';
-
-        // Fetch memories ordered chronologically
-        const { data: memories, error } = await sb
-            .from('memories')
-            .select('*')
-            .order('date', { ascending: true });
-
-        if (error) {
-            console.error('Load error:', error);
-            timeline.innerHTML = '<div class="empty-state">Error loading timeline. Please refresh.</div>';
-            return;
-        }
-
-        allMemories = memories || [];
-        
-        const dashboard = document.getElementById('dashboardHeader');
-        if (allMemories.length > 0) {
-            dashboard.classList.remove('hidden');
-            updateDashboard(allMemories);
-        } else {
-            dashboard.classList.add('hidden');
-        }
-
-        renderTimelineCards(allMemories);
-    }
-
-    function updateDashboard(memArray) {
-        // Update Stats counts
-        document.getElementById('statMemories').textContent = memArray.length;
-        const uniqueCities = new Set(memArray.map(m => m.location_name).filter(Boolean)).size;
-        document.getElementById('statCities').textContent = uniqueCities;
-
-        // Calculate Days Together based on oldest memory
-        if (memArray.length > 0 && document.getElementById('statDays')) {
-            const oldestMemoryDate = new Date(memArray[memArray.length - 1].date); // assuming ordered desc from DB
-            const now = new Date();
-            const diffTime = Math.abs(now - oldestMemoryDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            document.getElementById('statDays').textContent = diffDays;
-        }
-
-        // Build Year Dropdown dynamically based on data
-        const yearFilter = document.getElementById('yearFilter');
-        const currentSelection = yearFilter.value;
-        const years = [...new Set(memArray.map(m => new Date(m.date).getFullYear()))].sort().reverse();
-        
-        yearFilter.innerHTML = '<option value="All">All Years</option>';
-        years.forEach(y => {
-            yearFilter.innerHTML += `<option value="${y}">${y}</option>`;
-        });
-        
-        // Preserve selection or default back to All
-        yearFilter.value = currentSelection !== 'All' && years.includes(parseInt(currentSelection)) ? currentSelection : 'All';
-    }
-
-    function renderTimelineCards(memoriesToRender) {
-        const timeline = document.getElementById('timeline');
-        timeline.innerHTML = '';
-
-        if (memoriesToRender.length === 0) {
-            // Re-inject a clean empty state
-            timeline.innerHTML = `
-                <div class="empty-state" id="emptyState">
-                    <h2>No memories found 💕</h2>
-                    <p>Try changing your search or year filter!</p>
-                </div>
-            `;
-            return;
-        }
-
-        memoriesToRender.forEach(mem => {
-            const card = document.createElement('div');
-            card.className = 'memory-card';
-            
-            const safeCaption = escapeHTML(mem.caption);
-            const safeLocation = escapeHTML(mem.location_name);
-            const safePhotoUrl = escapeHTML(mem.photo_url);
-
-            card.innerHTML = `
-                <div class="card-photo-wrapper">
-                    <img src="${safePhotoUrl}" class="card-photo">
-                </div>
-                <div class="card-body">
-                    <div class="card-date">${mem.mood} ${new Date(mem.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                    <div class="card-caption">${safeCaption}</div>
-                    <div class="card-location" style="cursor: pointer;" onclick="openFlyoverMap(${mem.location_lat || null}, ${mem.location_lng || null}, '${safeLocation.replace(/'/g, "\\'")}', '${safeCaption.replace(/'/g, "\\'")}')">
-                        📍 ${safeLocation} <span style="font-size:0.7em; opacity:0.6;">(Click to view map)</span>
-                    </div>
-                    <div class="card-actions">
-                        <button class="btn-card-action btn-edit" data-id="${mem.id}" data-json='${JSON.stringify(mem).replace(/'/g, "&#39;")}'>Edit</button>
-                        <button class="btn-card-action btn-delete" data-id="${mem.id}">Delete</button>
-                    </div>
-                </div>
-            `;
-            timeline.appendChild(card);
-        });
-
-        // Event Listeners for new buttons
-        document.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const memoryId = e.target.getAttribute('data-id');
-                if (window.confirm("Are you sure you want to permanently delete this beautiful memory?")) {
-                    e.target.textContent = 'Deleting...';
-                    await sb.from('memories').delete().eq('id', memoryId);
-                    window.logEvent('memory_delete', 'User permanently deleted a memory from their timeline', { memoryId: memoryId });
-                    loadTimeline(); // Reload everything from db
-                }
-            });
-        });
-
-        document.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const mem = JSON.parse(e.target.getAttribute('data-json'));
-                editingMemoryId = mem.id;
-                document.getElementById('memoryDate').value = mem.date;
-                document.getElementById('memoryCaption').value = mem.caption;
-                document.getElementById('memoryLocation').value = mem.location_name;
-                selectedLat = mem.location_lat || null;
-                selectedLng = mem.location_lng || null;
-                document.querySelectorAll('.mood-pill').forEach(p => {
-                    p.classList.toggle('selected', p.dataset.mood === mem.mood);
-                });
-                selectedMood = mem.mood;
-                photoPreview.src = mem.photo_url;
-                photoPreview.classList.remove('hidden');
-                document.getElementById('photoDropZone').innerHTML = '<span class="upload-icon">🔄</span><span>Keep current photo</span>';
-                document.querySelector('.modal-content h2').textContent = 'Edit Memory ✏️';
-                document.getElementById('saveMemoryBtn').textContent = 'Update Memory';
-                modal.classList.remove('hidden');
-            });
-        });
-    }
-
-    // Filtering Logic
-    const searchFilter = document.getElementById('searchFilter');
-    const yearFilter = document.getElementById('yearFilter');
-
-    function applyFilters() {
-        const term = searchFilter.value.toLowerCase();
-        const year = yearFilter.value;
-
-        const filtered = allMemories.filter(mem => {
-            const memYear = new Date(mem.date).getFullYear().toString();
-            const textMatch = (mem.caption || '').toLowerCase().includes(term) || (mem.location_name || '').toLowerCase().includes(term);
-            const yearMatch = year === 'All' || year === memYear;
-            return textMatch && yearMatch;
-        });
-        
-        renderTimelineCards(filtered);
-    }
-
-    searchFilter.addEventListener('input', applyFilters);
-    yearFilter.addEventListener('change', applyFilters);
-
-    loadTimeline();
-
-    // --- INTERACTIVE MAP FLYOVER LOGIC ---
-    let flyoverMap = null;
-    let flyoverMarker = null;
-
-    window.openFlyoverMap = function(lat, lng, locName, caption) {
-        if (!lat || !lng) {
-            window.logEvent('feature_error', 'Interactive map flyover failed due to missing GPS coordinates', { location: locName });
-            alert('Oh no! It looks like this memory doesn\'t have GPS coordinates saved.');
-            return;
-        }
-
-        window.logEvent('feature_usage', 'Interactive map flyover successfully initiated', { location: locName, gps: [lat, lng] });
-
-        document.getElementById('mapFlyoverTitle').textContent = `📍 ${locName}`;
-        document.getElementById('mapFlyoverSubtitle').textContent = caption;
-        document.getElementById('mapFlyoverModal').classList.remove('hidden');
-
-        if (!flyoverMap) {
-            flyoverMap = L.map('flyoverMapContainer').setView([lat, lng], 14);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(flyoverMap);
-            flyoverMarker = L.marker([lat, lng]).addTo(flyoverMap);
-        } else {
-            flyoverMap.setView([lat, lng], 14);
-            flyoverMarker.setLatLng([lat, lng]);
-        }
-        
-        // Fix Leaflet rendering bug when modal opens
-        setTimeout(() => {
-            flyoverMap.invalidateSize();
-            flyoverMap.flyTo([lat, lng], 16, {
-                animate: true,
-                duration: 1.5
-            });
-            flyoverMarker.bindPopup(`<b>${locName}</b>`).openPopup();
-        }, 100);
+/* Memory CRUD, private albums, recycle bin and maps. */
+document.addEventListener('DOMContentLoaded', async () => {
+    if(!document.getElementById('memoryForm'))return;
+    const U=window.JournalUtils,sb=window.supabaseClient,$=id=>document.getElementById(id);
+    if(!U||!sb)return;
+    const words={
+        loading:['Loading memories…','正在读取回忆…'],load_error:['Could not load memories. Please retry.','读取回忆失败，请重试。'],retry:['Retry','重试'],
+        invalid_date:['Choose a valid date, no later than today.','请选择有效日期，不能晚于今天。'],invalid_caption:['Write a caption (up to 4000 characters).','请填写回忆内容（最多4000字）。'],invalid_location:['Enter a location.','请填写地点。'],invalid_mood:['Choose a mood (up to 16 characters).','请选择心情（最多16个字符）。'],
+        choose_photo:['Choose at least one photo.','请至少选择一张照片。'],photo_limit:['Choose up to eight JPEG, PNG or WebP photos, each under 10 MB.','最多选择8张JPEG、PNG或WebP照片，每张不超过10 MB。'],
+        decode_error:['This image could not be opened. Try another JPEG, PNG or WebP file.','无法读取这张图片，请换一张JPEG、PNG或WebP图片。'],saving_memory:['Saving your memory…','正在保存回忆…'],saved_memory:['Memory saved.','回忆已保存。'],
+        cloud_setup:['Cloud features are not ready. Your draft is kept; please contact the site owner.','云端功能暂未就绪，草稿已保留，请联系网站维护者。'],
+        no_matches:['No matching memories. Try another search or year.','没有匹配的回忆，试试其他关键词或年份。'],empty_story:['Your story starts with a first memory.','你们的故事，从第一条回忆开始。'],
+        trash:['Recycle bin','回收站'],move_trash:['Move this memory to the recycle bin? You can restore it later.','将这条回忆放入回收站？之后可以恢复。'],restore:['Restore','恢复'],purge:['Delete permanently','永久删除'],
+        purge_confirm:['Permanently delete this memory and its photos? This cannot be undone.','永久删除这条回忆及其照片？此操作不可撤销。'],trash_empty:['The recycle bin is empty.','回收站是空的。'],trashed:['Moved to recycle bin.','已放入回收站。'],
+        cleanup_error:['Some photo cleanup failed. Retry cleanup; your saved memory is safe.','部分照片清理失败，请重试清理；已保存的回忆不受影响。'],cleanup_retry:['Retry photo cleanup','重试照片清理'],
+        map_all:['Our footprints','我们的足迹'],no_gps:['No saved coordinates. Edit and select a search result.','这条回忆没有坐标，请编辑并选择地点搜索结果。'],no_pins:['No locations with coordinates yet.','还没有带坐标的地点。'],
+        search_error:['Location search failed. Retry or enter a name without a pin.','地点搜索失败，请重试，或只填写地点名称不保存坐标。'],
+        album:['Photo album','回忆相册'],previous:['Previous','上一张'],next:['Next','下一张'],close:['Close','关闭'],remove_photo:['Remove photo','移除照片'],photo_selected:['Photos selected','已选择照片'],
+        today_memory:['On this day','那年今日'],view_memory:['View memory','查看回忆'],map_unavailable:['Map unavailable. Please retry.','地图暂不可用，请重试。'],
+        export_failed:['Some photos could not be downloaded; export stopped. Please retry.','部分照片下载失败，已停止导出，请重试。'],photo_error:['Photo unavailable; reload to refresh access.','照片暂不可用，请重新载入以刷新访问权限。'],
+        sign_in:['Please log in again.','请重新登录。'],cancel:['Cancel','取消'],save_mem:['Save Memory','保存回忆'],update_mem:['Update Memory','更新回忆'],
+        new_memory:['New Memory','新回忆'],edit_memory:['Edit Memory','编辑回忆'],btn_edit:['Edit','编辑'],btn_delete:['Recycle','放入回收站'],year_all:['All Years','全部年份'],use_btn:['Use','使用'],uploading:['Uploading photo','正在上传照片']
     };
-
-    document.getElementById('closeMapFlyoverBtn').addEventListener('click', () => {
-        document.getElementById('mapFlyoverModal').classList.add('hidden');
+    const t=key=>words[key]?.[window.currentLang==='zh'?1:0]||window.t?.(key)||key;
+    const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;};
+    const message=(text,error=false)=>{const n=$('journalNotice');n.textContent=text;n.className='app-notice'+(error?' error':'');};
+    const errorText=e=>['42P01','42703','PGRST204','PGRST205'].includes(e?.code)?t('cloud_setup'):(e?.message||t('load_error'));
+    const status=(text,error=false)=>{const n=$('memoryStatusMsg');n.textContent=text;n.className='status-message '+(error?'error':'info');};
+    let user=null,all=[],editing=null,existing=[],files=[],lat=null,lng=null,busy=false,planId=null,schemaReady=false,selectedMood='';
+    let pendingCleanup=[],photoCache=new Map(),searchSeq=0,searchTimer,searchAbort,loadSeq=0,previewURLs=[],albumItems=[],albumIndex=0;
+    const modal=$('addMemoryModal'),form=$('memoryForm');
+    $('memoryCaption').maxLength=4000;$('photoInput').multiple=true;$('photoInput').accept='image/jpeg,image/png,image/webp';
+    const preview=el('div',null,'album-previews');$('photoPreview').after(preview);
+    const progress=el('progress');progress.max=1;progress.value=0;progress.className='hidden';progress.setAttribute('aria-label',t('saving_memory'));$('memoryStatusMsg').before(progress);
+    const cleanupBtn=el('button',t('cleanup_retry'),'btn-secondary hidden');cleanupBtn.type='button';$('journalNotice').after(cleanupBtn);
+    function button(key,callback){const b=el('button',t(key),'btn-card-action');b.type='button';b.addEventListener('click',async()=>{if(b.disabled)return;b.disabled=true;try{await callback();}catch(e){message(errorText(e),true);}finally{b.disabled=false;}});return b;}
+    const createDialog=id=>{const d=el('dialog',null,'journal-dialog');d.id=id;document.body.append(d);return d;};
+    const album=createDialog('albumDialog'),trash=createDialog('trashDialog'),mapDialog=createDialog('allMapDialog');
+    const mapTitle=el('h2'),mapArea=el('div');mapArea.id='journalMap';mapArea.style.height='55vh';mapDialog.append(mapTitle,mapArea,button('close',()=>mapDialog.close()));
+    let map=null,markers=null;
+    async function signed(ref){if(ref.url)return U.safeURL(ref.url);const key=ref.bucket+'/'+ref.path;if(photoCache.has(key))return photoCache.get(key);const {data,error}=await sb.storage.from(ref.bucket).createSignedUrl(ref.path,3600);if(error)throw error;const url=U.safeURL(data.signedUrl);photoCache.set(key,url);return url;}
+    async function setPhoto(img,ref){try{img.src=await signed(ref);img.onerror=()=>{img.alt=t('photo_error');};}catch(e){img.alt=t('photo_error');}}
+    function download(blob,name){const url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+    function storageRef(ref){
+        if(ref.bucket==='journal-media'&&ref.path?.startsWith(user.id+'/'))return ref;
+        if(ref.url){try{const url=new URL(ref.url),project=new URL(sb.supabaseUrl||'https://gtmlpbmuhtfrsnkwejey.supabase.co');const prefix='/storage/v1/object/public/memory-photos/';if(url.origin===project.origin&&url.pathname.startsWith(prefix)){const path=decodeURIComponent(url.pathname.slice(prefix.length));if(path.startsWith(user.id+'/')||path.startsWith(user.email+'/'))return {bucket:'memory-photos',path};}}catch{}}
+        return null;
+    }
+    function persistCleanup(){if(user)localStorage.setItem('journal_cleanup_'+user.id,JSON.stringify(pendingCleanup));}
+    async function removeRefs(refs, excludingId=null){
+        const {data,error}=await sb.from('memories').select('*').eq('user_id',user.id);if(error)throw error;
+        const protectedKeys=new Set((data||[]).filter(m=>m.id!==excludingId).flatMap(m=>U.photos(m).map(r=>r.path||r.url)));
+        for(const ref of refs){if(protectedKeys.has(ref.path||ref.url))continue;const owned=storageRef(ref);if(!owned)continue;const {error}=await sb.storage.from(owned.bucket).remove([owned.path]);if(error)throw error;}
+    }
+    async function cleanup(){if(!pendingCleanup.length)return;persistCleanup();try{await removeRefs(pendingCleanup);pendingCleanup=[];persistCleanup();cleanupBtn.classList.add('hidden');}catch(e){cleanupBtn.classList.remove('hidden');message(t('cleanup_error'),true);throw e;}}
+    cleanupBtn.addEventListener('click',()=>cleanup().catch(()=>{}));
+    function clearPreview(){previewURLs.forEach(URL.revokeObjectURL);previewURLs=[];preview.replaceChildren();$('photoPreview').classList.add('hidden');}
+    function renderPreview(){
+        clearPreview();
+        existing.forEach((ref,index)=>{const cell=el('div'),img=el('img');img.alt=t('album');setPhoto(img,ref);cell.append(img,button('remove_photo',()=>{existing.splice(index,1);renderPreview();}));preview.append(cell);});
+        files.forEach((file,index)=>{const cell=el('div'),img=el('img');img.alt=file.name;img.src=URL.createObjectURL(file);previewURLs.push(img.src);cell.append(img,button('remove_photo',()=>{files.splice(index,1);renderPreview();}));preview.append(cell);});
+        $('photoDropZone').textContent=existing.length+files.length?t('photo_selected')+': '+(existing.length+files.length)+'/8':window.t?.('click_upload')||t('choose_photo');
+    }
+    function reset(){form.reset();editing=null;existing=[];files=[];lat=lng=null;planId=null;searchSeq++;searchAbort?.abort();$('locationSuggestions').replaceChildren();$('locationSuggestions').classList.add('hidden');$('memoryStatusMsg').className='status-message hidden';$('memoryDate').value=U.day(new Date());$('memoryDate').max=U.day(new Date());document.querySelectorAll('.mood-pill').forEach(n=>n.classList.remove('selected'));selectedMood='';renderPreview();}
+    function openNew(prefill={}){
+        if(busy)return;reset();$('memoryDate').value=prefill.date||U.day(new Date());$('memoryCaption').value=prefill.caption||'';$('memoryLocation').value=prefill.location_name||'';planId=prefill.plan_id||null;modal.querySelector('h2').textContent=t('new_memory');$('saveMemoryBtn').textContent=t('save_mem');modal.classList.remove('hidden');$('memoryCaption').focus();
+    }
+    function openEdit(memory){
+        if(busy)return;reset();editing=memory;existing=U.photos(memory).slice();lat=memory.location_lat;lng=memory.location_lng;selectedMood=memory.mood;
+        $('memoryDate').value=memory.date;$('memoryCaption').value=memory.caption;$('memoryLocation').value=memory.location_name;
+        document.querySelectorAll('.mood-pill').forEach(p=>p.classList.toggle('selected',p.dataset.mood===selectedMood));
+        modal.querySelector('h2').textContent=t('edit_memory');$('saveMemoryBtn').textContent=t('update_mem');renderPreview();modal.classList.remove('hidden');$('memoryCaption').focus();
+    }
+    function closeForm(){if(busy)return;modal.classList.add('hidden');reset();$('fabAdd').focus();}
+    $('fabAdd').addEventListener('click',()=>openNew());$('cancelMemoryBtn').addEventListener('click',closeForm);modal.addEventListener('click',e=>{if(e.target===modal)closeForm();});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))closeForm();});
+    modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label',t('new_memory'));
+    modal.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const nodes=[...modal.querySelectorAll('button,input,textarea,[tabindex="0"]')].filter(n=>!n.disabled&&n.offsetParent!==null);const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}});
+    $('photoDropZone').tabIndex=0;$('photoDropZone').setAttribute('role','button');$('photoDropZone').addEventListener('click',()=>{if(!busy)$('photoInput').click();});$('photoDropZone').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('photoDropZone').click();}});
+    $('photoInput').addEventListener('change',e=>{const picked=[...e.target.files];if(existing.length+picked.length>8||picked.some(f=>!['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>10*1024*1024)){status(t('photo_limit'),true);e.target.value='';return;}files=picked;renderPreview();});
+    document.querySelectorAll('.mood-pill').forEach(p=>{p.tabIndex=0;p.setAttribute('role','button');p.addEventListener('click',()=>{if(busy)return;selectedMood=p.dataset.mood;document.querySelectorAll('.mood-pill').forEach(n=>n.classList.toggle('selected',n===p));});p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();p.click();}});});
+    $('addCustomMoodBtn').addEventListener('click',()=>{const value=$('customMoodInput').value.trim();if(value&&value.length<=16){selectedMood=value;document.querySelectorAll('.mood-pill').forEach(n=>n.classList.remove('selected'));$('addCustomMoodBtn').textContent=t('use_btn')+' '+value;}});
+    $('memoryDate').addEventListener('keydown',e=>{if(e.key==='Enter')e.preventDefault();});
+    $('memoryLocation').addEventListener('input',()=>{
+        lat=lng=null;clearTimeout(searchTimer);searchAbort?.abort();const seq=++searchSeq,query=$('memoryLocation').value.trim(),list=$('locationSuggestions');list.replaceChildren();list.classList.add('hidden');if(query.length<3)return;
+        searchTimer=setTimeout(async()=>{searchAbort=new AbortController();try{const response=await fetch('https://nominatim.openstreetmap.org/search?'+new URLSearchParams({q:query,format:'json',addressdetails:'1',limit:'5','accept-language':window.currentLang==='zh'?'zh,en':'en,zh'}),{signal:searchAbort.signal});if(!response.ok)throw new Error(t('search_error'));const places=await response.json();if(seq!==searchSeq)return;list.replaceChildren();for(const place of places){const li=el('li'),b=button('invalid_location',()=>{lat=Number(place.lat);lng=Number(place.lon);$('memoryLocation').value=place.display_name||place.name||query;list.classList.add('hidden');});b.textContent=place.display_name||place.name||query;li.append(b);list.append(li);}list.classList.toggle('hidden',!places.length);}catch(e){if(e.name!=='AbortError'&&seq===searchSeq)status(t('search_error'),true);}},600);
     });
-
+    document.addEventListener('click',e=>{if(!$('memoryLocation').contains(e.target)&&!$('locationSuggestions').contains(e.target))$('locationSuggestions').classList.add('hidden');});
+    async function compress(file){
+        let bitmap;try{bitmap=await createImageBitmap(file);}catch{throw new Error(t('decode_error'));}
+        try{const scale=Math.min(1,1600/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.82));if(!blob)throw new Error(t('decode_error'));return blob;}finally{bitmap.close();}
+    }
+    async function checkSchema(){const {error}=await sb.from('memories').select('photo_urls,deleted_at').eq('user_id',user.id).limit(1);schemaReady=!error;if(error)throw error;}
+    form.addEventListener('submit',async e=>{
+        e.preventDefault();if(busy)return;
+        const payload={date:$('memoryDate').value,caption:$('memoryCaption').value.trim(),location_name:$('memoryLocation').value.trim(),location_lat:lat,location_lng:lng,mood:selectedMood};
+        const invalid=U.validateMemory(payload);if(invalid){status(t(invalid),true);return;}if(!existing.length&&!files.length){status(t('choose_photo'),true);return;}if(existing.length+files.length>8){status(t('photo_limit'),true);return;}
+        busy=true;form.querySelectorAll('button,input,textarea').forEach(n=>n.disabled=true);status(t('saving_memory'));progress.classList.remove('hidden');progress.max=Math.max(1,files.length);progress.value=0;
+        const uploaded=[];let committed=false;
+        try{
+            if(!user)throw new Error(t('sign_in'));if(!schemaReady)await checkSchema();
+            for(const file of files){const blob=await compress(file),path=user.id+'/'+crypto.randomUUID()+'.jpg';const {error}=await sb.storage.from('journal-media').upload(path,blob,{contentType:'image/jpeg'});if(error)throw error;uploaded.push({bucket:'journal-media',path});progress.value=uploaded.length;status(t('uploading')+' '+uploaded.length+'/'+files.length);}
+            const refs=[...existing,...uploaded];payload.photo_urls=refs.filter(r=>r.path);payload.photo_url=refs.find(r=>r.url)?.url||null;
+            const query=editing?sb.from('memories').update(payload).eq('id',editing.id).eq('user_id',user.id):sb.from('memories').insert({...payload,user_id:user.id});
+            const {data,error}=await query.select().single();if(error)throw error;committed=true;
+            if(editing){const keys=new Set(refs.map(r=>r.path||r.url));pendingCleanup.push(...U.photos(editing).filter(r=>!keys.has(r.path||r.url)));}
+            window.logEvent?.(editing?'memory_update':'memory_create','Memory saved');
+            const savedPlan=planId;modal.classList.add('hidden');reset();message(t('saved_memory'));await reload();document.dispatchEvent(new CustomEvent('journal:saved',{detail:{memory:data,plan_id:savedPlan}}));
+            try{await cleanup();}catch{}
+        }catch(err){status(errorText(err),true);if(!committed){pendingCleanup.push(...uploaded);try{await cleanup();}catch{}}else message(errorText(err),true);}
+        finally{busy=false;form.querySelectorAll('button,input,textarea').forEach(n=>n.disabled=false);progress.classList.add('hidden');$('saveMemoryBtn').textContent=t(editing?'update_mem':'save_mem');}
+    });
+    function filtered(){const term=$('searchFilter').value.toLocaleLowerCase(),year=$('yearFilter').value;return all.filter(m=>(year==='All'||m.date.slice(0,4)===year)&&[m.caption,m.location_name].some(v=>(v||'').toLocaleLowerCase().includes(term)));}
+    function render(){
+        const selected=$('yearFilter').value||'All';$('yearFilter').replaceChildren(new Option(t('year_all'),'All'));[...new Set(all.map(m=>m.date.slice(0,4)))].sort().reverse().forEach(y=>$('yearFilter').add(new Option(y,y)));$('yearFilter').value=[...$('yearFilter').options].some(o=>o.value===selected)?selected:'All';
+        $('statMemories').textContent=all.length;$('statCities').textContent=new Set(all.map(m=>m.location_name).filter(Boolean)).size;$('statDays').textContent=U.daysTogether(all,window.relationshipStart);
+        $('dashboardHeader').classList.remove('hidden');const root=$('timeline');root.replaceChildren();const list=filtered();
+        if(!list.length)root.append(el('p',all.length?t('no_matches'):t('empty_story'),'empty-state'));
+        for(const memory of list){
+            const card=el('article',null,'memory-card');card.dataset.id=memory.id;const refs=U.photos(memory),image=el('img',null,'card-photo');image.alt=memory.caption;image.loading='lazy';if(refs[0])setPhoto(image,refs[0]);
+            const photo=el('button',null,'card-photo-wrapper photo-open');photo.type='button';photo.setAttribute('aria-label',t('album'));photo.append(image);photo.addEventListener('click',()=>openAlbum(memory));card.append(photo);
+            const body=el('div',null,'card-body'),date=U.parse(memory.date);
+            body.append(el('div',(memory.mood||'')+' '+(date?date.toLocaleDateString(window.currentLang==='zh'?'zh-CN':'en-US',{year:'numeric',month:'short',day:'numeric'}):memory.date),'card-date'),el('p',memory.caption,'card-caption'));
+            const loc=button('map_all',()=>openMap([memory]));loc.className='card-location';loc.textContent='📍 '+(memory.location_name||'');body.append(loc);
+            const actions=el('div',null,'card-actions'),edit=button('btn_edit',()=>openEdit(memory)),remove=button('btn_delete',async()=>{if(!confirm(t('move_trash')))return;if(!schemaReady)await checkSchema();const {error}=await sb.from('memories').update({deleted_at:new Date().toISOString()}).eq('id',memory.id).eq('user_id',user.id);if(error)throw error;message(t('trashed'));await reload();});edit.classList.add('btn-edit');remove.classList.add('btn-delete');actions.append(edit,remove);body.append(actions);card.append(body);root.append(card);
+        }
+        const today=U.day(new Date()),matches=all.filter(m=>m.date.slice(5)===today.slice(5)&&m.date.slice(0,4)<today.slice(0,4)),feature=$('onThisDayFeature');feature.replaceChildren();feature.classList.toggle('hidden',!matches.length);
+        if(matches.length){feature.append(el('h3',t('today_memory')));for(const m of matches){const b=button('view_memory',()=>openAlbum(m));b.textContent=m.date+' · '+m.caption;feature.append(b);}}
+    }
+    async function reload(){
+        if(!user)return;const seq=++loadSeq;$('timeline').replaceChildren(el('p',t('loading'),'empty-state'));photoCache.clear();
+        const {data,error}=await sb.from('memories').select('*').eq('user_id',user.id).order('date',{ascending:false});
+        if(seq!==loadSeq)return;if(error){$('timeline').replaceChildren(el('p',errorText(error)),button('retry',reload));throw error;}
+        all=(data||[]).filter(m=>!m.deleted_at);render();document.dispatchEvent(new CustomEvent('journal:loaded',{detail:{memories:all}}));
+    }
+    function renderAlbum(){
+        album.replaceChildren(el('h2',t('album')));const img=el('img');img.alt=t('album');if(albumItems[albumIndex])setPhoto(img,albumItems[albumIndex]);album.append(img,el('p',(albumIndex+1)+' / '+albumItems.length));
+        const controls=el('div',null,'dialog-actions');controls.append(button('previous',()=>{albumIndex=(albumIndex-1+albumItems.length)%albumItems.length;renderAlbum();}),button('next',()=>{albumIndex=(albumIndex+1)%albumItems.length;renderAlbum();}),button('close',()=>album.close()));album.append(controls);controls.querySelector('button').focus();
+    }
+    function openAlbum(memory){albumItems=U.photos(memory);if(!albumItems.length)return;albumIndex=0;renderAlbum();album.showModal();}
+    album.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();albumIndex=(albumIndex+(e.key==='ArrowRight'?1:-1)+albumItems.length)%albumItems.length;renderAlbum();}});
+    async function openTrash(){
+        if(!user)return;if(!schemaReady)await checkSchema();const {data,error}=await sb.from('memories').select('*').eq('user_id',user.id).not('deleted_at','is',null).order('deleted_at',{ascending:false});if(error)throw error;
+        trash.replaceChildren(el('h2',t('trash')));if(!data.length)trash.append(el('p',t('trash_empty')));
+        for(const memory of data){const card=el('article',null,'plan-card');card.append(el('p',memory.date+' · '+memory.caption));
+            card.append(button('restore',async()=>{const {error}=await sb.from('memories').update({deleted_at:null}).eq('id',memory.id).eq('user_id',user.id);if(error)throw error;await reload();await openTrash();}));
+            card.append(button('purge',async()=>{if(!confirm(t('purge_confirm')))return;await removeRefs(U.photos(memory),memory.id);const {error}=await sb.from('memories').delete().eq('id',memory.id).eq('user_id',user.id);if(error)throw error;await openTrash();}));trash.append(card);
+        }trash.append(button('close',()=>trash.close()));if(!trash.open)trash.showModal();
+    }
+    function openMap(memories=all){
+        const valid=memories.filter(m=>U.coordinates(m.location_lat,m.location_lng));if(!valid.length){message(t(memories.length===1?'no_gps':'no_pins'),true);return;}
+        if(!window.L){message(t('map_unavailable'),true);return;}mapTitle.textContent=t('map_all');if(!mapDialog.open)mapDialog.showModal();
+        if(!map){map=L.map(mapArea);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);markers=L.featureGroup().addTo(map);}
+        markers.clearLayers();valid.forEach(m=>{const popup=el('div');popup.append(el('strong',m.location_name),el('p',m.caption));L.marker([Number(m.location_lat),Number(m.location_lng)]).bindPopup(popup).addTo(markers);});
+        requestAnimationFrame(()=>{map.invalidateSize();if(valid.length===1)map.setView([Number(valid[0].location_lat),Number(valid[0].location_lng)],14);else map.fitBounds(markers.getBounds(),{padding:[25,25]});});
+    }
+    async function exportData(extra={}){
+        const entries=[],memories=all.map(m=>({...m,backup_photos:[]}));
+        for(const memory of memories){let index=0;for(const ref of U.photos(memory)){let blob;const storage=storageRef(ref);if(storage){const result=await sb.storage.from(storage.bucket).download(storage.path);if(result.error)throw new Error(t('export_failed'));blob=result.data;}else {const response=await fetch(await signed(ref));if(!response.ok)throw new Error(t('export_failed'));blob=await response.blob();}
+            const ext=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg',name='photos/'+memory.id+'-'+(++index)+'.'+ext;entries.push({name,blob});memory.backup_photos.push(name);}}
+        entries.unshift({name:'journal.json',blob:new Blob([JSON.stringify({version:1,exported_at:new Date().toISOString(),...extra,memories},null,2)],{type:'application/json'})});
+        download(await U.zip(entries),'journal-'+U.day(new Date())+'.zip');
+    }
+    $('searchFilter').addEventListener('input',render);$('yearFilter').addEventListener('change',render);
+    document.addEventListener('languagechange',()=>{render();renderPreview();$('saveMemoryBtn').textContent=t(editing?'update_mem':'save_mem');modal.querySelector('h2').textContent=t(editing?'edit_memory':'new_memory');});
+    window.journal={reload,openNew,getMemories:()=>all.map(m=>({...m})),openMap,openTrash:()=>openTrash().catch(e=>message(errorText(e),true)),exportData};
+    try{const {data,error}=await sb.auth.getUser();if(error)throw error;user=data.user;if(!user)return;try{pendingCleanup=JSON.parse(localStorage.getItem('journal_cleanup_'+user.id)||'[]');if(!Array.isArray(pendingCleanup))pendingCleanup=[];}catch{pendingCleanup=[];}cleanupBtn.classList.toggle('hidden',!pendingCleanup.length);try{await checkSchema();}catch(e){message(errorText(e),true);}reset();await reload();}catch(e){message(errorText(e),true);}
 });

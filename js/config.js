@@ -5,7 +5,15 @@ const SUPABASE_ANON_KEY = 'sb_publishable_v2RDnaHW99O5OrzrIaH9Jw_v8x74JOH';
 
 // Initialize Supabase. This creates a global 'supabase' object we can access in our other JS files.
 if (typeof supabase !== 'undefined') {
+    // Capture recovery intent before the SDK consumes and clears URL tokens.
+    window.authRecovery = new URLSearchParams(location.hash.slice(1)).get('type') === 'recovery' || new URLSearchParams(location.search).get('type') === 'recovery';
     window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient.auth.onAuthStateChange(event => {
+        if (event === 'PASSWORD_RECOVERY') {
+            window.authRecovery = true;
+            document.dispatchEvent(new CustomEvent('journal:recovery'));
+        }
+    });
     console.log("Supabase library successfully loaded and configured.");
 } else {
     console.error("Supabase script tag is missing from index.html!");

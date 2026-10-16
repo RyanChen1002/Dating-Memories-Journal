@@ -1,278 +1,77 @@
-// Phase 2: Authentication & Routing Logic using Supabase Auth
-
+/* Authentication: login and signup are explicit, independent actions. */
 document.addEventListener('DOMContentLoaded', async () => {
-    
-    const sb = window.supabaseClient;
-    const isAuthPage = window.location.pathname.includes('auth.html');
-
-    // Check if recovery link is being visited
-    const isRecovery = window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery');
-
-    // --- ROUTING GUARD ---
-    // Check if user is already logged in
-    const { data: { session } } = await sb.auth.getSession();
-
-    // If NOT logged in and NOT on auth page → kick to login
-    if (!session && !isAuthPage) {
-        window.location.href = 'auth.html';
-        return;
+    const sb=window.supabaseClient, authPage=window.location.pathname.includes('auth.html'), $=id=>document.getElementById(id);
+    if(!sb){if($('statusMessage')){$('statusMessage').textContent='连接服务暂不可用 / Connection unavailable';$('statusMessage').className='status-message error';}return;}
+    const copy={
+        login:['Log In','登录'],signup:['Create New Account','创建新账户'],connecting:['Connecting…','正在连接…'],short:['Password must be at least 6 characters.','密码至少需要6个字符。'],
+        incorrect:['Incorrect email or password. Please try again or reset your password.','邮箱或密码不正确，请重试或重置密码。'],welcome:['Welcome! Opening your journal…','登录成功，正在进入日记…'],
+        register:['If registration is available, check your email for confirmation. Already have an account? Log in or reset your password.','如果可以注册，请查看邮箱中的确认邮件。已有账户？请登录或重置密码。'],
+        network:['Connection failed. Please try again.','连接失败，请重试。'],reset:['Send Reset Link','发送重置链接'],sending:['Sending…','正在发送…'],
+        reset_sent:['If an account exists, a recovery email will be sent. Check your inbox and spam folder.','如果账户存在，系统将发送找回邮件，请检查收件箱和垃圾邮件。'],
+        update:['Update Password & Log In','更新密码并登录'],updating:['Updating…','正在更新…'],updated:['Password updated. Opening your journal…','密码已更新，正在进入日记…'],
+        expired:['Recovery session is missing or expired. Request a new link.','找回会话无效或已过期，请重新申请链接。'],recovery:['Enter your new password below.','请在下方输入新密码。'],
+        show:['Show password','显示密码'],hide:['Hide password','隐藏密码'],logout:['Log Out','登出']
+    };
+    const tr=k=>copy[k][window.currentLang==='zh'?1:0];
+    let lastStatus=null, mode='authSection',busy=false,resetBusy=false,updateBusy=false;
+    let recovery=!!window.authRecovery||window.location.hash.includes('type=recovery')||window.location.search.includes('type=recovery');
+    function status(key,type='info',raw=false){lastStatus={key,type,raw};if($('statusMessage')){$('statusMessage').textContent=raw?key:tr(key);$('statusMessage').className='status-message '+type;}}
+    function show(section){mode=section;for(const id of ['authSection','resetSection','newPasswordSection']){const n=$(id);if(n)n.classList.toggle('hidden',id!==section);}if($('statusMessage'))$('statusMessage').classList.add('hidden');lastStatus=null;}
+    const onRecovery=()=>{recovery=true;if(authPage){show('newPasswordSection');status('recovery');}};
+    // Subscribe before awaiting SDK initialization/session lookup.
+    sb.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')onRecovery();});
+    document.addEventListener('journal:recovery',onRecovery);
+    try{
+        const {data,error}=await sb.auth.getSession();if(error)throw error;
+        recovery=recovery||!!window.authRecovery;
+        if(!authPage&&!data?.session){window.location.href='auth.html';return;}
+        if(authPage&&data?.session&&!recovery){window.location.href='index.html';return;}
+    }catch(e){if(authPage)status('network','error');else window.location.href='auth.html';}
+    if(!authPage){
+        const logout=$('logoutBtn');logout?.addEventListener('click',async()=>{
+            if(logout.disabled)return;logout.disabled=true;
+            try{const {error}=await sb.auth.signOut({scope:'local'});if(error)throw error;window.location.href='auth.html';}
+            catch(e){const n=$('journalNotice');if(n){n.textContent=tr('network');n.className='app-notice error';}logout.disabled=false;}
+        });return;
     }
-
-    // If logged in and ON auth page, AND not recovering password → send to timeline
-    if (session && isAuthPage && !isRecovery) {
-        window.location.href = 'index.html';
-        return;
+    if(recovery){show('newPasswordSection');status('recovery');}
+    if(window.location.hash.includes('error=')||window.location.search.includes('error=')){show('resetSection');status('expired','error');}
+    $('statusMessage')?.setAttribute('role','status');$('statusMessage')?.setAttribute('aria-live','polite');
+    for(const id of ['password','newPasswordInput']){
+        const input=$(id);if(!input)continue;input.autocomplete=id==='password'?'current-password':'new-password';
+        const b=document.createElement('button');b.type='button';b.className='password-toggle';b.dataset.passwordToggle=id;b.setAttribute('aria-controls',id);b.setAttribute('aria-pressed','false');b.textContent=tr('show');
+        b.addEventListener('click',()=>{const reveal=input.type==='password';input.type=reveal?'text':'password';b.setAttribute('aria-pressed',String(reveal));b.textContent=tr(reveal?'hide':'show');});input.after(b);
     }
-
-    // --- AUTH PAGE LOGIC ---
-    if (isAuthPage) {
-        const authSection = document.getElementById('authSection');
-        const resetSection = document.getElementById('resetSection');
-        const newPasswordSection = document.getElementById('newPasswordSection');
-
-        const form = document.getElementById('authForm');
-        const emailInput = document.getElementById('email');
-        const passInput = document.getElementById('password');
-        const submitBtn = document.getElementById('authSubmitBtn');
-        const statusMsg = document.getElementById('statusMessage');
-
-        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-        const backToLoginLink = document.getElementById('backToLoginLink');
-        const resetForm = document.getElementById('resetForm');
-        const resetEmailInput = document.getElementById('resetEmail');
-        const resetSubmitBtn = document.getElementById('resetSubmitBtn');
-
-        const newPasswordForm = document.getElementById('newPasswordForm');
-        const newPasswordInput = document.getElementById('newPasswordInput');
-        const newPasswordSubmitBtn = document.getElementById('newPasswordSubmitBtn');
-
-        function showStatus(msg, type) {
-            statusMsg.textContent = msg;
-            statusMsg.className = 'status-message ' + type;
-            statusMsg.classList.remove('hidden');
-        }
-
-        function switchTo(section) {
-            if (authSection) authSection.classList.add('hidden');
-            if (resetSection) resetSection.classList.add('hidden');
-            if (newPasswordSection) newPasswordSection.classList.add('hidden');
-            if (statusMsg) statusMsg.classList.add('hidden');
-            if (section) section.classList.remove('hidden');
-        }
-
-        if (forgotPasswordLink) {
-            forgotPasswordLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (resetEmailInput && emailInput) {
-                    resetEmailInput.value = emailInput.value.trim();
-                }
-                switchTo(resetSection);
-            });
-        }
-
-        if (backToLoginLink) {
-            backToLoginLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                switchTo(authSection);
-            });
-        }
-
-        // Handle Password Reset Request
-        if (resetForm) {
-            resetForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = resetEmailInput.value.trim();
-                if (!email) {
-                    showStatus('Please enter your email address.', 'error');
-                    return;
-                }
-
-                resetSubmitBtn.disabled = true;
-                resetSubmitBtn.textContent = 'Sending...';
-
-                const redirectUrl = window.location.origin.includes('localhost')
-                    ? window.location.origin + '/auth.html'
-                    : 'https://dating-memories-journal.vercel.app/auth.html';
-
-                const { error } = await sb.auth.resetPasswordForEmail(email, {
-                    redirectTo: redirectUrl
-                });
-
-                resetSubmitBtn.disabled = false;
-                const lang = localStorage.getItem('lang') || 'en';
-                resetSubmitBtn.textContent = (window.translations && window.translations[lang] && window.translations[lang]['send_reset_btn']) || 'Send Reset Link 📧';
-
-                if (error) {
-                    showStatus(error.message, 'error');
-                } else {
-                    showStatus(
-                        lang === 'zh'
-                            ? '📧 重置链接已发送到你的邮箱！请查收邮件并点击链接设置新密码。'
-                            : '📧 Password reset link sent! Check your email to set your new password.',
-                        'success'
-                    );
-                }
-            });
-        }
-
-        // Listen for Supabase PASSWORD_RECOVERY event
-        sb.auth.onAuthStateChange(async (event) => {
-            if (event === 'PASSWORD_RECOVERY') {
-                switchTo(newPasswordSection);
-                const lang = localStorage.getItem('lang') || 'en';
-                showStatus(
-                    lang === 'zh'
-                        ? '请在下方输入你的新密码。'
-                        : 'Please enter your new password below.',
-                    'info'
-                );
-            }
-        });
-
-        // Direct hash check for recovery link
-        if (isRecovery) {
-            switchTo(newPasswordSection);
-            const lang = localStorage.getItem('lang') || 'en';
-            showStatus(
-                lang === 'zh'
-                    ? '请在下方输入你的新密码。'
-                    : 'Please enter your new password below.',
-                'info'
-            );
-        }
-
-        // Handle Set New Password
-        if (newPasswordForm) {
-            newPasswordForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const newPass = newPasswordInput.value;
-                if (newPass.length < 6) {
-                    showStatus('Password must be at least 6 characters.', 'error');
-                    return;
-                }
-
-                newPasswordSubmitBtn.disabled = true;
-                newPasswordSubmitBtn.textContent = 'Updating...';
-
-                const { error } = await sb.auth.updateUser({
-                    password: newPass
-                });
-
-                const lang = localStorage.getItem('lang') || 'en';
-                if (error) {
-                    showStatus(error.message, 'error');
-                    newPasswordSubmitBtn.disabled = false;
-                    newPasswordSubmitBtn.textContent = (window.translations && window.translations[lang] && window.translations[lang]['update_pass_btn']) || 'Update Password & Log In ✨';
-                } else {
-                    showStatus(
-                        lang === 'zh'
-                            ? '🎉 密码更新成功！正在进入日记...'
-                            : '🎉 Password updated successfully! Entering your journal...',
-                        'success'
-                    );
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1000);
-                }
-            });
-        }
-
-        if (form) {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-
-                const email = emailInput.value.trim();
-                const password = passInput.value;
-
-                // Validate password length
-                if (password.length < 6) {
-                    showStatus('Password must be at least 6 characters.', 'error');
-                    return;
-                }
-
-                // Disable button while processing
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Connecting...';
-
-                // Step 1: Try to LOG IN first
-                const { data: loginData, error: loginError } = await sb.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (loginData.session) {
-                    // Login success! Redirect immediately.
-                    window.logEvent('auth', 'User successfully authenticated via existing account', { email: email });
-                    
-                    showStatus('Welcome back! Syncing your memories...', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 800);
-                    return;
-                }
-
-                // Step 2: If login failed because user doesn't exist, SIGN UP
-                if (loginError && loginError.message.includes('Invalid login credentials')) {
-                    showStatus('Creating your new couple account...', 'info');
-
-                    // BUG FIX 1: Use the live Vercel URL as the redirect target.
-                    // Falls back to current origin so it works on both localhost and production.
-                    const redirectUrl = window.location.origin.includes('localhost')
-                        ? window.location.origin + '/auth.html'
-                        : 'https://dating-memories-journal.vercel.app/auth.html';
-
-                    const { data: signUpData, error: signUpError } = await sb.auth.signUp({
-                        email: email,
-                        password: password,
-                        options: {
-                            emailRedirectTo: redirectUrl
-                        }
-                    });
-
-                    if (signUpError) {
-                        showStatus(signUpError.message, 'error');
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Begin Sync';
-                        return;
-                    }
-
-                    // Check if email confirmation is required
-                    if (signUpData.user && !signUpData.session) {
-                        showStatus('📧 Check your email inbox! We sent you a confirmation link to activate your couple account. Once confirmed, come back and log in.', 'success');
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Begin Sync';
-                        return;
-                    }
-
-                    // Auto-confirmed (no email verification needed)
-                    if (signUpData.session) {
-                        window.logEvent('auth_create', 'New couple account successfully registered', { email: email });
-                        
-                        showStatus('Account created! Syncing...', 'success');
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 800);
-                        return;
-                    }
-                }
-
-                // Step 3: Some other error
-                showStatus(loginError ? loginError.message : 'Something went wrong. Try again.', 'error');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Begin Sync';
-            });
-        }
+    $('email').autocomplete='email';$('resetEmail').autocomplete='email';
+    function labels(){
+        $('authSubmitBtn').textContent=tr(busy?'connecting':'login');if($('signupSubmitBtn'))$('signupSubmitBtn').textContent=tr('signup');
+        $('resetSubmitBtn').textContent=tr(resetBusy?'sending':'reset');$('newPasswordSubmitBtn').textContent=tr(updateBusy?'updating':'update');
+        document.querySelectorAll('[data-password-toggle]').forEach(b=>b.textContent=tr($(b.dataset.passwordToggle).type==='text'?'hide':'show'));
+        if(lastStatus)status(lastStatus.key,lastStatus.type,lastStatus.raw);
     }
-
-    // --- LOGOUT (runs on index.html) ---
-    if (!isAuthPage) {
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async () => {
-                window.logEvent('auth_logout', 'User manually initiated logout sequence');
-                await sb.auth.signOut();
-                window.location.href = 'auth.html';
-            });
-        }
-    }
+    document.addEventListener('languagechange',labels);labels();
+    $('forgotPasswordLink').addEventListener('click',e=>{e.preventDefault();if(busy)return;$('resetEmail').value=$('email').value.trim();show('resetSection');$('resetEmail').focus();});
+    $('backToLoginLink').addEventListener('click',e=>{e.preventDefault();if(resetBusy)return;show('authSection');$('email').focus();});
+    $('resetForm').addEventListener('submit',async e=>{
+        e.preventDefault();if(resetBusy)return;resetBusy=true;$('resetSubmitBtn').disabled=true;labels();
+        try{const {error}=await sb.auth.resetPasswordForEmail($('resetEmail').value.trim(),{redirectTo:new URL('auth.html',window.location.href).href});if(error)throw error;status('reset_sent','success');}
+        catch(err){status(err.message||tr('network'),'error',true);}finally{resetBusy=false;$('resetSubmitBtn').disabled=false;labels();}
+    });
+    $('newPasswordForm').addEventListener('submit',async e=>{
+        e.preventDefault();if(updateBusy)return;const password=$('newPasswordInput').value;if(password.length<6){status('short','error');return;}
+        updateBusy=true;$('newPasswordSubmitBtn').disabled=true;labels();
+        try{const session=await sb.auth.getSession();if(session.error||!session.data?.session){status('expired','error');return;}
+            const {error}=await sb.auth.updateUser({password});if(error)throw error;window.authRecovery=false;recovery=false;status('updated','success');setTimeout(()=>{window.location.href='index.html';},800);
+        }catch(err){status(err.message||tr('network'),'error',true);}finally{updateBusy=false;$('newPasswordSubmitBtn').disabled=false;labels();}
+    });
+    $('authForm').addEventListener('submit',async e=>{
+        e.preventDefault();if(busy)return;const email=$('email').value.trim(),password=$('password').value;
+        if(password.length<6){status('short','error');return;}const signup=e.submitter?.id==='signupSubmitBtn';
+        busy=true;$('authSubmitBtn').disabled=true;if($('signupSubmitBtn'))$('signupSubmitBtn').disabled=true;labels();
+        try{
+            if(signup){const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:new URL('auth.html',window.location.href).href}});if(error)throw error;if(!data?.session){status('register');return;}}
+            else{const {data,error}=await sb.auth.signInWithPassword({email,password});if(error){if(error.code==='invalid_credentials'||error.message?.includes('Invalid login credentials'))status('incorrect','error');else status(error.message,'error',true);return;}if(!data?.session)throw new Error(tr('network'));}
+            window.logEvent?.(signup?'auth_create':'auth','User authenticated');status('welcome','success');setTimeout(()=>{window.location.href='index.html';},800);
+        }catch(err){status(err.message||tr('network'),'error',true);}finally{busy=false;$('authSubmitBtn').disabled=false;if($('signupSubmitBtn'))$('signupSubmitBtn').disabled=false;labels();}
+    });
 });

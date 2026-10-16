@@ -19,7 +19,7 @@ const translations = {
         "click_upload": "Click to upload a photo",
         "keep_photo": "Keep current photo",
         "date_of_mem": "Date of Memory",
-        "date_hint": "Click the calendar icon or type directly (YYYY-MM-DD)",
+        "date_hint": "Choose a date up to today (local time).",
         "caption": "Caption",
         "caption_ph": "What made this moment special?",
         "location_name": "Location Name",
@@ -43,7 +43,8 @@ const translations = {
         "email_ph": "youremail@example.com",
         "password": "Password",
         "password_ph": "Minimum 6 characters",
-        "begin_sync": "Begin Sync",
+        "begin_sync": "Log In",
+        "create_account": "Create New Account",
         "forgot_password": "Forgot Password?",
         "reset_title": "Reset Password 🔑",
         "reset_sub": "Enter your email to receive a recovery link.",
@@ -96,7 +97,7 @@ const translations = {
         "click_upload": "点击上传照片",
         "keep_photo": "保留当前照片",
         "date_of_mem": "回忆日期",
-        "date_hint": "点击日历图标或直接输入 (YYYY-MM-DD)",
+        "date_hint": "请选择不晚于今天的日期（按本地时间）。",
         "caption": "文案",
         "caption_ph": "这个瞬间为什么特别？",
         "location_name": "地点名称",
@@ -120,7 +121,8 @@ const translations = {
         "email_ph": "youremail@example.com",
         "password": "密码",
         "password_ph": "至少 6 个字符",
-        "begin_sync": "开始同步",
+        "begin_sync": "登录",
+        "create_account": "创建新账户",
         "forgot_password": "忘记密码？",
         "reset_title": "重置密码 🔑",
         "reset_sub": "输入你的邮箱以接收密码重置链接。",
@@ -157,11 +159,14 @@ const translations = {
     }
 };
 
-window.currentLang = localStorage.getItem('i18n_lang') || 'en';
+window.translations = translations;
+window.t = (key, fallback = key) => translations[window.currentLang]?.[key] || translations.en[key] || fallback;
+window.currentLang = ['en', 'zh'].includes(localStorage.getItem('i18n_lang')) ? localStorage.getItem('i18n_lang') : 'en';
 
 window.setLanguage = function(lang) {
     if (!translations[lang]) return;
     window.currentLang = lang;
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
     localStorage.setItem('i18n_lang', lang);
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -169,9 +174,7 @@ window.setLanguage = function(lang) {
         if (translations[lang][key]) {
             // Check if input/textarea placeholder or text node
             if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                if (el.placeholder) {
-                    el.placeholder = translations[lang][key];
-                }
+                el.placeholder = translations[lang][key];
             } else {
                 el.textContent = translations[lang][key];
             }
@@ -188,6 +191,7 @@ window.setLanguage = function(lang) {
     if (typeof window.applyTranslationsToTimeline === 'function') {
         window.applyTranslationsToTimeline();
     }
+    document.dispatchEvent(new CustomEvent('languagechange', { detail: { lang } }));
 };
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,0 +1,13 @@
+const {test} = require('node:test');
+const assert=require('node:assert/strict');
+const vm=require('node:vm');
+const fs=require('node:fs');
+const context={window:{},document:{addEventListener(){}},Date};
+vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../js/journal-features.js'),'utf8'),context);
+const {nextEvent,ordinal}=context.window.JournalFeaturesUtils;
+test('anniversary today stays today',()=>assert.equal(nextEvent('2020-10-15',true,'2026-10-15'),'2026-10-15'));
+test('past annual event rolls into next year',()=>assert.equal(nextEvent('2020-02-01',true,'2026-10-15'),'2027-02-01'));
+test('leap-day anniversary clamps to February end',()=>assert.equal(nextEvent('2020-02-29',true,'2026-01-01'),'2026-02-28'));
+test('leap-day remains valid in leap years',()=>assert.equal(nextEvent('2020-02-29',true,'2028-01-01'),'2028-02-29'));
+test('one-off anniversaries retain original date',()=>assert.equal(nextEvent('2020-02-29',false,'2026-01-01'),'2020-02-29'));
+test('day counting ignores DST elapsed-hour shifts',()=>assert.equal(ordinal('2026-03-09')-ordinal('2026-03-08'),1));
