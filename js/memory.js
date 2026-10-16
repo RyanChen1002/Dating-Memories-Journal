@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         trash:['Recycle bin','回收站'],move_trash:['Move this memory to the recycle bin? You can restore it later.','将这条回忆放入回收站？之后可以恢复。'],restore:['Restore','恢复'],purge:['Delete permanently','永久删除'],
         purge_confirm:['Permanently delete this memory and its photos? This cannot be undone.','永久删除这条回忆及其照片？此操作不可撤销。'],trash_empty:['The recycle bin is empty.','回收站是空的。'],trashed:['Moved to recycle bin.','已放入回收站。'],
         cleanup_error:['Some photo cleanup failed. Retry cleanup; your saved memory is safe.','部分照片清理失败，请重试清理；已保存的回忆不受影响。'],cleanup_retry:['Retry photo cleanup','重试照片清理'],
-        map_all:['Our footprints','我们的足迹'],no_gps:['No saved coordinates. Edit and select a search result.','这条回忆没有坐标，请编辑并选择地点搜索结果。'],no_pins:['No locations with coordinates yet.','还没有带坐标的地点。'],
+        map_all:['Our footprints','我们的足迹'],google_map:['Google Maps','Google 地图'],map_fallback:['Google Maps is unavailable; OpenStreetMap is active.','Google 地图暂不可用，已切换到 OpenStreetMap。'],no_gps:['No saved coordinates. Edit and select a search result.','这条回忆没有坐标，请编辑并选择地点搜索结果。'],no_pins:['No locations with coordinates yet.','还没有带坐标的地点。'],
         search_error:['Location search failed. Retry or enter a name without a pin.','地点搜索失败，请重试，或只填写地点名称不保存坐标。'],
         album:['Photo album','回忆相册'],previous:['Previous','上一张'],next:['Next','下一张'],close:['Close','关闭'],remove_photo:['Remove photo','移除照片'],photo_selected:['Photos selected','已选择照片'],
         today_memory:['On this day','那年今日'],view_memory:['View memory','查看回忆'],map_unavailable:['Map unavailable. Please retry.','地图暂不可用，请重试。'],
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const createDialog=id=>{const d=el('dialog',null,'journal-dialog');d.id=id;document.body.append(d);return d;};
     const album=createDialog('albumDialog'),trash=createDialog('trashDialog'),mapDialog=createDialog('allMapDialog');
     const mapTitle=el('h2'),mapArea=el('div');mapArea.id='journalMap';mapArea.style.height='55vh';mapDialog.append(mapTitle,mapArea,button('close',()=>mapDialog.close()));
-    let map=null,markers=null;
+    let googleMap=null,googleMarkers=[],googleLoader=null,leafMap=null,leafMarkers=null;
     async function signed(ref){if(ref.url)return U.safeURL(ref.url);const key=ref.bucket+'/'+ref.path;if(photoCache.has(key))return photoCache.get(key);const {data,error}=await sb.storage.from(ref.bucket).createSignedUrl(ref.path,3600);if(error)throw error;const url=U.safeURL(data.signedUrl);photoCache.set(key,url);return url;}
     async function setPhoto(img,ref){try{img.src=await signed(ref);img.onerror=()=>{img.alt=t('photo_error');};}catch(e){img.alt=t('photo_error');}}
     function download(blob,name){const url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
@@ -149,12 +149,39 @@ document.addEventListener('DOMContentLoaded', async () => {
             card.append(button('purge',async()=>{if(!confirm(t('purge_confirm')))return;await removeRefs(U.photos(memory),memory.id);const {error}=await sb.from('memories').delete().eq('id',memory.id).eq('user_id',user.id);if(error)throw error;await openTrash();}));trash.append(card);
         }trash.append(button('close',()=>trash.close()));if(!trash.open)trash.showModal();
     }
-    function openMap(memories=all){
+    function loadGoogleMaps(){
+        if(window.google?.maps)return Promise.resolve(window.google.maps);
+        if(googleLoader)return googleLoader;
+        if(!window.googleMapsApiKey)return Promise.reject(new Error('Google Maps key is unavailable'));
+        googleLoader=new Promise((resolve,reject)=>{
+            const callback='__journalGoogleMapsReady',script=el('script');let settled=false;
+            const finish=(fn,value)=>{if(settled)return;settled=true;clearTimeout(timer);delete window[callback];fn(value);};
+            window[callback]=()=>finish(resolve,window.google.maps);
+            const previousFailure=window.gm_authFailure;
+            window.gm_authFailure=()=>{finish(reject,new Error('Google Maps authentication failed'));previousFailure?.();};
+            script.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(window.googleMapsApiKey)+'&loading=async&callback='+callback;
+            script.async=true;script.defer=true;script.referrerPolicy='strict-origin-when-cross-origin';script.onerror=()=>finish(reject,new Error('Google Maps request failed'));document.head.append(script);
+            const timer=setTimeout(()=>finish(reject,new Error('Google Maps load timed out')),12000);
+        });
+        return googleLoader;
+    }
+    function openLeaflet(valid){
+        if(!window.L)throw new Error(t('map_unavailable'));
+        if(!leafMap){mapArea.replaceChildren();leafMap=L.map(mapArea);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(leafMap);leafMarkers=L.featureGroup().addTo(leafMap);}
+        leafMarkers.clearLayers();valid.forEach(m=>{const popup=el('div');popup.append(el('strong',m.location_name),el('p',m.caption));L.marker([Number(m.location_lat),Number(m.location_lng)]).bindPopup(popup).addTo(leafMarkers);});
+        requestAnimationFrame(()=>{leafMap.invalidateSize();if(valid.length===1)leafMap.setView([Number(valid[0].location_lat),Number(valid[0].location_lng)],14);else leafMap.fitBounds(leafMarkers.getBounds(),{padding:[25,25]});});
+    }
+    async function openMap(memories=all){
         const valid=memories.filter(m=>U.coordinates(m.location_lat,m.location_lng));if(!valid.length){message(t(memories.length===1?'no_gps':'no_pins'),true);return;}
-        if(!window.L){message(t('map_unavailable'),true);return;}mapTitle.textContent=t('map_all');if(!mapDialog.open)mapDialog.showModal();
-        if(!map){map=L.map(mapArea);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);markers=L.featureGroup().addTo(map);}
-        markers.clearLayers();valid.forEach(m=>{const popup=el('div');popup.append(el('strong',m.location_name),el('p',m.caption));L.marker([Number(m.location_lat),Number(m.location_lng)]).bindPopup(popup).addTo(markers);});
-        requestAnimationFrame(()=>{map.invalidateSize();if(valid.length===1)map.setView([Number(valid[0].location_lat),Number(valid[0].location_lng)],14);else map.fitBounds(markers.getBounds(),{padding:[25,25]});});
+        mapTitle.textContent=t('map_all');if(!mapDialog.open)mapDialog.showModal();
+        try{
+            const maps=await loadGoogleMaps();mapTitle.textContent=t('map_all')+' · '+t('google_map');
+            if(leafMap){leafMap.remove();leafMap=null;leafMarkers=null;mapArea.replaceChildren();}
+            if(!googleMap)googleMap=new maps.Map(mapArea,{center:{lat:0,lng:0},zoom:2,mapTypeControl:true,streetViewControl:false,fullscreenControl:true});
+            googleMarkers.forEach(marker=>marker.setMap(null));googleMarkers=[];const bounds=new maps.LatLngBounds(),info=new maps.InfoWindow();
+            valid.forEach(memory=>{const position={lat:Number(memory.location_lat),lng:Number(memory.location_lng)},marker=new maps.Marker({map:googleMap,position,title:memory.location_name||memory.caption});marker.addListener('click',()=>{const popup=el('div');popup.append(el('strong',memory.location_name),el('p',memory.caption));info.setContent(popup);info.open({map:googleMap,anchor:marker});});googleMarkers.push(marker);bounds.extend(position);});
+            requestAnimationFrame(()=>{maps.event.trigger(googleMap,'resize');if(valid.length===1){googleMap.setCenter(bounds.getCenter());googleMap.setZoom(14);}else googleMap.fitBounds(bounds,48);});
+        }catch(error){console.warn('Google Maps unavailable; using OpenStreetMap.',error);message(t('map_fallback'));openLeaflet(valid);}
     }
     async function exportData(extra={}){
         const entries=[],memories=all.map(m=>({...m,backup_photos:[]}));

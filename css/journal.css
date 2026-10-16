@@ -8,6 +8,9 @@ body.timeline-page .sidebar-panel { background: rgba(30,24,33,.88); }
 .journal-nav { display:flex; gap:8px; justify-content:center; padding:12px; position:sticky; top:0; z-index:50; background:rgba(23,18,25,.95); backdrop-filter:blur(15px); }
 .journal-nav button { padding:12px 18px; border:1px solid #73535f; background:transparent; color:#f9e5ec; border-radius:20px; cursor:pointer; font:inherit; }
 .journal-nav [aria-current=page] { background:#6a394c; border-color:#f5b2bd; }
+@media(min-width:1101px) {
+ .journal-nav [data-view="plans"], .journal-nav [data-view="profile"] { display:none; }
+}
 .panel-target { animation:panel-target-pulse .9s ease-out; scroll-margin-top:90px; }
 @keyframes panel-target-pulse { 0%,100% { box-shadow:0 8px 24px #0004; } 35% { box-shadow:0 0 0 4px #f5b2bd,0 12px 40px #f5b2bd55; } }
 .control-bar { flex-wrap:wrap; }

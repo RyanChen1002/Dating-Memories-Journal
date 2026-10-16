@@ -16,7 +16,7 @@ A private, beautifully designed cloud application for couples to log and cherish
 
 - **🔐 Privacy First:** Protected by Supabase Auth and Row-Level-Security (RLS). You only see your own memories.
 - **📸 Cloud Photos:** Fast, auto-compressed cloud storage via Supabase.
-- **🗺️ Interactive Minimaps:** Drop pins with live OpenStreetMap integration.
+- **🗺️ Interactive Maps:** Google Maps powers the primary multi-pin experience, with OpenStreetMap as an automatic fallback.
 - **✨ Premium 3D Atmospheres:** The dashboard features multiple stunning, user-selectable 3D backgrounds built natively into the app, featuring Interactive WebGL Liquid Waves, Volumetric Twilight Clouds, and High-Action Rotating tsParticle engines (like Siamese Flying Emojis and Starfields).
 - **📋 Upcoming Plans Bucket List:** An interactive sidebar module dedicated to future dates and bucket-list trips. Clicking a plan opens a gorgeous iOS-style transparent modal complete with a checklist subsystem and live discussion/notes thread!
 - **💅 Apple-Tier Luxury UI:** Engineered with complex CSS properties including `backdrop-filter` frosted glassmorphism panels, hidden dynamic scrollbars, interactive responsive neon outlines, and perfectly balanced Flexbox layouts scaling flawlessly to mobile.
@@ -26,7 +26,7 @@ A private, beautifully designed cloud application for couples to log and cherish
 This project was built without bloated frameworks! It leverages the power of pure, modern vanilla web technologies:
 - **Frontend Core:** HTML5, CSS3, Vanilla JavaScript (ES6+).
 - **Backend & Database:** Supabase JS SDK (PostgreSQL Database + Auth + Edge Storage).
-- **Maps:** Leaflet.js with free OpenStreetMap tile layers.
+- **Maps:** Google Maps JavaScript API, with Leaflet.js/OpenStreetMap fallback.
 
 ## 🤖 AI-Powered Workflow (Spec-Kit)
 
@@ -46,6 +46,15 @@ All workflow scripts live in `.github/skills/`, and their structured outputs are
 3. Open `js/config.js` and insert your Supabase Project URL and Anon API Key.
 	*(Note: Because of strict RLS policies, it is 100% physically safe to expose your Anon Key to the frontend).*
 4. Run locally using VS Code Live Server or any basic HTTP server!
+
+### Google Maps browser-key security
+
+Google Maps JavaScript API keys are necessarily visible to the browser. The key in `js/config.js` must be protected in Google Cloud Console with both:
+
+- **Application restriction — Websites:** allow only `https://dating-memories-journal.vercel.app/*`, `http://127.0.0.1:8765/*`, and `http://localhost:8765/*`.
+- **API restriction:** allow only **Maps JavaScript API**.
+
+Never use a server, service-account, unrestricted, or multi-API key in frontend code. Review usage under Google Maps Platform → Metrics and configure Billing budget alerts before deployment.
 
 ## 🌍 Deployment
 

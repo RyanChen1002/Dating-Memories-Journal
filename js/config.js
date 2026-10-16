@@ -2,6 +2,9 @@
 
 const SUPABASE_URL = 'https://gtmlpbmuhtfrsnkwejey.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_v2RDnaHW99O5OrzrIaH9Jw_v8x74JOH';
+// Browser key: intentionally client-visible and secured in Google Cloud by HTTP referrer
+// restrictions plus a Maps JavaScript API-only restriction.
+window.googleMapsApiKey = 'AIzaSyC44sg0VYtr6f7YJZbqFTBVeX8MklS_ODQ';
 
 // Initialize Supabase. This creates a global 'supabase' object we can access in our other JS files.
 if (typeof supabase !== 'undefined') {
