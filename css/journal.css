@@ -8,6 +8,8 @@ body.timeline-page .sidebar-panel { background: rgba(30,24,33,.88); }
 .journal-nav { display:flex; gap:8px; justify-content:center; padding:12px; position:sticky; top:0; z-index:50; background:rgba(23,18,25,.95); backdrop-filter:blur(15px); }
 .journal-nav button { padding:12px 18px; border:1px solid #73535f; background:transparent; color:#f9e5ec; border-radius:20px; cursor:pointer; font:inherit; }
 .journal-nav [aria-current=page] { background:#6a394c; border-color:#f5b2bd; }
+.panel-target { animation:panel-target-pulse .9s ease-out; scroll-margin-top:90px; }
+@keyframes panel-target-pulse { 0%,100% { box-shadow:0 8px 24px #0004; } 35% { box-shadow:0 0 0 4px #f5b2bd,0 12px 40px #f5b2bd55; } }
 .control-bar { flex-wrap:wrap; }
 .control-bar input { min-width:0; width:55%; }
 .control-bar select { max-width:45%; }
@@ -35,6 +37,12 @@ body.timeline-page .sidebar-panel { background: rgba(30,24,33,.88); }
 .journal-dialog h2 { color:#f5b2bd; margin-bottom:14px; }
 .journal-dialog textarea { min-height:100px; resize:vertical; }
 .journal-dialog img { max-width:100%; max-height:65dvh; object-fit:contain; }
+.album-stage { min-height:240px; display:grid; place-items:center; background:#120e15; border-radius:14px; overflow:hidden; }
+.album-stage>img { width:100%; max-height:58dvh; object-fit:contain; }
+.album-thumbnails { display:flex; gap:10px; overflow-x:auto; padding:8px 2px 12px; scroll-snap-type:x mandatory; }
+.album-thumbnails button { flex:0 0 82px; width:82px; height:68px; padding:3px; border:2px solid transparent; border-radius:10px; background:#382c3c; scroll-snap-align:start; }
+.album-thumbnails button[aria-current=true] { border-color:#f5b2bd; box-shadow:0 0 0 2px #f5b2bd44; }
+.album-thumbnails img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
 .plan-card, .anniversary-card { border:1px solid #624354; border-radius:14px; padding:14px; margin:12px 0; overflow-wrap:anywhere; }
 .plan-card h3 { margin-bottom:8px; }
 .plan-card button { margin:6px 4px 0 0; }

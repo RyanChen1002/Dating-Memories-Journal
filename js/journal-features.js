@@ -42,10 +42,18 @@
         const ensureUser = () => { if (!user) throw new Error(tr('generic_error')); };
         function selectView(view) {
             activeView = view;
-            document.querySelectorAll('[data-panel]').forEach(el => el.classList.toggle('active-panel', el.dataset.panel === view));
+            const target = document.querySelector(`[data-panel="${view}"]`);
+            document.querySelectorAll('[data-panel]').forEach(el => {
+                el.classList.toggle('active-panel', el.dataset.panel === view);
+                el.classList.remove('panel-target');
+            });
             document.querySelectorAll('[data-view]').forEach(el => { if(el.dataset.view === view) el.setAttribute('aria-current','page'); else el.removeAttribute('aria-current'); });
             $('fabAdd').classList.toggle('hidden', view !== 'timeline');
-            if (matchMedia('(min-width:1101px)').matches) document.querySelector(`[data-panel="${view}"]`)?.scrollIntoView({block:'nearest'});
+            if (matchMedia('(min-width:1101px)').matches && target) {
+                target.classList.add('panel-target');
+                target.scrollIntoView({behavior:'smooth', block:'start', inline:'nearest'});
+                setTimeout(() => target.classList.remove('panel-target'), 900);
+            }
         }
         document.querySelectorAll('[data-view]').forEach(el => el.addEventListener('click', () => selectView(el.dataset.view)));
         document.querySelectorAll('[data-action]').forEach(el => el.addEventListener('click', () => {
