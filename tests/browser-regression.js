@@ -45,7 +45,7 @@ async function runJournalRegression() {
         });
         await check('plan conversion fills memory without prematurely completing',async()=>{
             click($('planList').querySelectorAll('button')[1]);assert($('memoryCaption').value.includes('QA picnic'),'prefill missing');assert(!__qa.tables.journal_plans[0].completed,'premature completion');
-            input('memoryLocation','QA Park');click(document.querySelector('.mood-pill'));
+            input('memoryLocation','QA Park');$('moodIndex').value='5';$('moodIndex').dispatchEvent(new Event('input',{bubbles:true}));
             submit('memoryForm');assert($('memoryStatusMsg').textContent.includes('photo'),'photo validation');
         });
         async function photos(corrupt=false){

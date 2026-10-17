@@ -1,11 +1,11 @@
-const CACHE_NAME = 'dating-memories-v2';
+const CACHE_NAME = 'dating-memories-v3';
 const APP_SHELL = [
     '/auth.html',
     '/index.html',
     '/manifest.json',
-    '/css/style.css?v=24',
-    '/css/journal.css?v=24',
-    '/js/pwa.js?v=24',
+    '/css/style.css?v=25',
+    '/css/journal.css?v=25',
+    '/js/pwa.js?v=25',
     '/assets/icon-192.png',
     '/assets/icon-512.png',
     '/assets/apple-touch-icon.png',

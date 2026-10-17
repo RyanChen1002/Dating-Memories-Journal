@@ -66,17 +66,22 @@
         async function setAtmosphere(value, persist = true) {
             const version = ++fxVersion;
             $('atmosphereSelect').disabled = true;
+            if ($('mobileAtmosphereSelect')) $('mobileAtmosphereSelect').disabled = true;
             try {
                 await window.setRomanticFX(value);
+                $('atmosphereSelect').value = value;
+                if ($('mobileAtmosphereSelect')) $('mobileAtmosphereSelect').value = value;
                 if (version === fxVersion && persist) localStorage.setItem('journal_atmosphere',value);
             } catch(e) { await window.setRomanticFX('off'); notice(tr('animation_failed'), true); }
-            finally { if(version === fxVersion) $('atmosphereSelect').disabled=false; }
+            finally { if(version === fxVersion) { $('atmosphereSelect').disabled=false; if ($('mobileAtmosphereSelect')) $('mobileAtmosphereSelect').disabled=false; } }
         }
         const reduced = matchMedia('(prefers-reduced-motion: reduce)');
         const initialFX = reduced.matches ? 'off' : (localStorage.getItem('journal_atmosphere') || 'waves_light');
         $('atmosphereSelect').value = [...$('atmosphereSelect').options].some(o => o.value === initialFX) ? initialFX : 'off';
+        if ($('mobileAtmosphereSelect')) $('mobileAtmosphereSelect').value = $('atmosphereSelect').value;
         setAtmosphere($('atmosphereSelect').value, false);
         $('atmosphereSelect').addEventListener('change', e => setAtmosphere(e.target.value));
+        $('mobileAtmosphereSelect')?.addEventListener('change', e => setAtmosphere(e.target.value));
         reduced.addEventListener('change', e => { if(e.matches) { $('atmosphereSelect').value='off'; setAtmosphere('off', false); } });
         function renderEvents() {
             const root = $('anniversaryList'); root.replaceChildren();

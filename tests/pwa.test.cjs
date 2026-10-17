@@ -30,10 +30,34 @@ test('journal and authentication pages expose PWA metadata', () => {
         const html = read(file).toString('utf8');
         assert.match(html, /rel="manifest" href="manifest\.json"/);
         assert.match(html, /rel="apple-touch-icon"[^>]+apple-touch-icon\.png/);
-        assert.match(html, /src="js\/pwa\.js\?v=24"/);
+        assert.match(html, /src="js\/pwa\.js\?v=25"/);
+        assert.match(html, /data-install-app/);
     }
     assert.deepEqual(pngDimensions('assets/apple-touch-icon.png'), { width: 180, height: 180 });
     assert.deepEqual(pngDimensions('assets/favicon-32.png'), { width: 32, height: 32 });
+});
+
+test('mobile journal exposes atmosphere controls without opening the profile panel', () => {
+    const html = read('index.html').toString('utf8');
+    const css = read('css/journal.css').toString('utf8');
+    const features = read('js/journal-features.js').toString('utf8');
+    assert.match(html, /id="mobileAtmosphereSelect"/);
+    assert.match(css, /@media\(max-width:1100px\)[\s\S]*\.mobile-quick-actions \{ display:grid/);
+    assert.match(css, /#vanta-bg \{ z-index:0!important; pointer-events:none; \}/);
+    assert.match(features, /mobileAtmosphereSelect['"]\)\?\.addEventListener\('change'/);
+});
+
+test('memory editor uses a fixed five-level mood index and description copy', () => {
+    const html = read('index.html').toString('utf8');
+    const css = read('css/journal.css').toString('utf8');
+    const memory = read('js/memory.js').toString('utf8');
+    const i18n = read('js/i18n.js').toString('utf8');
+    assert.match(html, /id="moodIndex" min="1" max="5"/);
+    assert.doesNotMatch(html, /mood-pill|customMoodInput/);
+    assert.match(css, /#addMemoryModal \.modal-content \{[^}]*animation:none!important/);
+    assert.match(memory, /const moodScale=\['😌','🙂','😊','🥰','😍'\]/);
+    assert.match(i18n, /"caption": "描述"/);
+    assert.doesNotMatch(i18n, /这个瞬间/);
 });
 
 test('service worker caches only the same-origin public app shell', () => {

@@ -66,4 +66,6 @@ Never use a server, service-account, unrestricted, or multi-API key in frontend 
 
 The PWA uses a custom couples-journal icon, standalone display mode, and a cached public app shell. Installation and Service Workers require HTTPS in production (provided by Vercel) or `localhost` during development. Private Supabase journal data and authentication responses are not intentionally cached by the Service Worker.
 
+On supported browsers, use the visible **Install App** button. On iPhone/iPad, the button explains the Safari **Share → Add to Home Screen** flow. Mobile users can also switch 3D atmospheres directly from the quick-settings bar without opening the profile panel.
+
 - **Hosting:** Fully deployed and automatically built via **Vercel**. Connect this codebase to Vercel for instantaneous, free global edge hosting!

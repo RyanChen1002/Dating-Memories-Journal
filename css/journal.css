@@ -1,5 +1,8 @@
 :root { --primary-color: #f5b2bd; }
 body.timeline-page { color: #f8ecef; background: #171219; }
+body.timeline-page #vanta-bg { z-index:0!important; pointer-events:none; }
+body.timeline-page::before { z-index:0; }
+body.timeline-page>:not(#vanta-bg) { position:relative; z-index:1; }
 body.timeline-page .desktop-wrapper { max-width: 1440px; grid-template-columns: minmax(210px,260px) minmax(0,1fr) minmax(210px,260px); gap: 24px; }
 body.timeline-page .center-feed, .sidebar-panel, .control-bar, .control-bar>* { min-width: 0; }
 body.timeline-page .sidebar-panel { background: rgba(30,24,33,.88); }
@@ -69,6 +72,16 @@ button:disabled { opacity:.55; cursor:wait; transform:none!important; }
 .auth-container,.auth-box { min-width:0; }
 .auth-box-title,.auth-box .subtitle { overflow-wrap:anywhere; }
 .auth-box input { min-width:0; max-width:100%; }
+.install-app-button { margin-top:18px; padding:12px 20px; border:1px solid #fff; border-radius:999px; background:linear-gradient(135deg,#ff6b9e,#ff9e6b); color:#fff; font:inherit; font-weight:800; cursor:pointer; box-shadow:0 8px 24px #ff6b9e55; }
+.mobile-quick-actions { display:none; }
+#addMemoryModal .modal-content { position:relative; transform:none!important; animation:none!important; }
+#addMemoryModal { overscroll-behavior:contain; }
+.mood-index { padding:12px 0 4px; }
+.mood-index output { display:block; margin-bottom:10px; color:#fff; text-align:center; font-size:1.7rem; font-weight:800; }
+.modal-content .mood-index input[type=range] { appearance:none; height:12px; padding:0; border:0; border-radius:999px; background:linear-gradient(90deg,#7b6b86,#ff7b9a,#ffd4a2); box-shadow:none; cursor:pointer; }
+.modal-content .mood-index input[type=range]::-webkit-slider-thumb { appearance:none; width:28px; height:28px; border:3px solid #fff; border-radius:50%; background:#ff7b9a; box-shadow:0 3px 12px #0008; }
+.modal-content .mood-index input[type=range]::-moz-range-thumb { width:24px; height:24px; border:3px solid #fff; border-radius:50%; background:#ff7b9a; box-shadow:0 3px 12px #0008; }
+.mood-scale { display:flex; justify-content:space-between; margin-top:9px; color:#d8c7d0; font-size:.8rem; }
 @media(max-width:1100px) {
  body.timeline-page .desktop-wrapper { grid-template-columns:minmax(0,1fr); max-width:760px; margin:16px auto; padding:0 14px; }
  body.timeline-page [data-panel] { display:none; }
@@ -83,6 +96,20 @@ button:disabled { opacity:.55; cursor:wait; transform:none!important; }
  .sidebar-panel { width:100%; }
  .auth-box { padding:28px 22px; }
  .auth-hero-title { overflow-wrap:anywhere; font-size:clamp(2rem,10vw,3.5rem); }
+ .mobile-quick-actions { display:grid; grid-template-columns:auto minmax(0,1fr); gap:8px 10px; align-items:center; margin:12px 14px 0; padding:12px; border:1px solid #73535f; border-radius:16px; background:rgba(23,18,25,.9); backdrop-filter:blur(15px); position:relative; z-index:40; }
+ .mobile-quick-actions label { color:#f5b2bd; font-weight:700; }
+ .mobile-quick-actions select { width:100%; min-width:0; padding:11px 34px 11px 12px; border:1px solid #805367; border-radius:12px; background:#231e29; color:#fff; font:inherit; }
+ .mobile-quick-actions .install-app-button { grid-column:1/-1; margin:0; width:100%; }
+}
+@media(max-width:480px) {
+ .timeline-header { padding:12px 14px; }
+ .timeline-header h1 { flex:1 1 100%; text-align:center; }
+ .timeline-header>div { width:100%; justify-content:space-between; }
+ .stats-panel { overflow-x:auto; scroll-snap-type:x proximity; }
+ .stat-item { min-width:92px; scroll-snap-align:start; }
+ .control-bar { flex-direction:column; }
+ .control-bar input,.control-bar select { width:100%; max-width:none; }
+ .journal-dialog { width:calc(100vw - 20px); padding:20px 16px; border-radius:18px; }
 }
 @media(prefers-reduced-motion:reduce) {
  *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
