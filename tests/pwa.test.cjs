@@ -44,6 +44,7 @@ test('mobile journal exposes atmosphere controls without opening the profile pan
     assert.match(html, /id="mobileAtmosphereSelect"/);
     assert.match(css, /@media\(max-width:1100px\)[\s\S]*\.mobile-quick-actions \{ display:grid/);
     assert.match(css, /#vanta-bg \{ z-index:0!important; pointer-events:none; \}/);
+    assert.doesNotMatch(css, />:not\(#vanta-bg\) \{ position:relative/);
     assert.match(features, /mobileAtmosphereSelect['"]\)\?\.addEventListener\('change'/);
 });
 
@@ -55,6 +56,7 @@ test('memory editor uses a fixed five-level mood index and description copy', ()
     assert.match(html, /id="moodIndex" min="1" max="5"/);
     assert.doesNotMatch(html, /mood-pill|customMoodInput/);
     assert.match(css, /#addMemoryModal \.modal-content \{[^}]*animation:none!important/);
+    assert.match(css, /#addMemoryModal \{ position:fixed!important; inset:0;/);
     assert.match(memory, /const moodScale=\['😌','🙂','😊','🥰','😍'\]/);
     assert.match(i18n, /"caption": "描述"/);
     assert.doesNotMatch(i18n, /这个瞬间/);

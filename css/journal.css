@@ -2,7 +2,12 @@
 body.timeline-page { color: #f8ecef; background: #171219; }
 body.timeline-page #vanta-bg { z-index:0!important; pointer-events:none; }
 body.timeline-page::before { z-index:0; }
-body.timeline-page>:not(#vanta-bg) { position:relative; z-index:1; }
+body.timeline-page>.timeline-header,
+body.timeline-page>.mobile-quick-actions,
+body.timeline-page>.app-notice,
+body.timeline-page>.desktop-wrapper { position:relative; z-index:1; }
+body.timeline-page>.journal-nav,
+body.timeline-page>.fab { z-index:50; }
 body.timeline-page .desktop-wrapper { max-width: 1440px; grid-template-columns: minmax(210px,260px) minmax(0,1fr) minmax(210px,260px); gap: 24px; }
 body.timeline-page .center-feed, .sidebar-panel, .control-bar, .control-bar>* { min-width: 0; }
 body.timeline-page .sidebar-panel { background: rgba(30,24,33,.88); }
@@ -74,8 +79,8 @@ button:disabled { opacity:.55; cursor:wait; transform:none!important; }
 .auth-box input { min-width:0; max-width:100%; }
 .install-app-button { margin-top:18px; padding:12px 20px; border:1px solid #fff; border-radius:999px; background:linear-gradient(135deg,#ff6b9e,#ff9e6b); color:#fff; font:inherit; font-weight:800; cursor:pointer; box-shadow:0 8px 24px #ff6b9e55; }
 .mobile-quick-actions { display:none; }
+#addMemoryModal { position:fixed!important; inset:0; width:auto; height:auto; z-index:200; overscroll-behavior:contain; background:rgba(8,4,10,.42); backdrop-filter:blur(4px); }
 #addMemoryModal .modal-content { position:relative; transform:none!important; animation:none!important; }
-#addMemoryModal { overscroll-behavior:contain; }
 .mood-index { padding:12px 0 4px; }
 .mood-index output { display:block; margin-bottom:10px; color:#fff; text-align:center; font-size:1.7rem; font-weight:800; }
 .modal-content .mood-index input[type=range] { appearance:none; height:12px; padding:0; border:0; border-radius:999px; background:linear-gradient(90deg,#7b6b86,#ff7b9a,#ffd4a2); box-shadow:none; cursor:pointer; }
