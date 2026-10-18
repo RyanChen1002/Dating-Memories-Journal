@@ -23,6 +23,15 @@
         return null;
     }
     function coordinates(lat,lng) {return lat!==null&&lng!==null&&lat!==''&&lng!==''&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))&&Math.abs(Number(lat))<=90&&Math.abs(Number(lng))<=180;}
+    function calendarCells(year,month) {
+        if(!Number.isInteger(year)||!Number.isInteger(month)||month<0||month>11)return [];
+        const first=new Date(Date.UTC(year,month,1)).getUTCDay();
+        return Array.from({length:42},(_,index)=>{
+            const date=new Date(Date.UTC(year,month,index-first+1));
+            const value=`${date.getUTCFullYear()}-${String(date.getUTCMonth()+1).padStart(2,'0')}-${String(date.getUTCDate()).padStart(2,'0')}`;
+            return {date:value,day:date.getUTCDate(),current:date.getUTCMonth()===month};
+        });
+    }
     function crc32(bytes){let crc=0xffffffff;for(const byte of bytes){crc^=byte;for(let b=0;b<8;b++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}return (crc^0xffffffff)>>>0;}
     // ZIP "store" format keeps exports dependency-free and includes actual photo bytes.
     async function zip(entries) {
@@ -35,6 +44,6 @@
         const end=new Uint8Array(22),v=new DataView(end.buffer);v.setUint32(0,0x06054b50,true);v.setUint16(8,entries.length,true);v.setUint16(10,entries.length,true);v.setUint32(12,centralSize,true);v.setUint32(16,offset,true);
         return new Blob([...chunks,...central,end],{type:'application/zip'});
     }
-    const api={day,parse,ordinal,daysTogether,photos,safeURL,validateMemory,coordinates,crc32,zip};
+    const api={day,parse,ordinal,daysTogether,photos,safeURL,validateMemory,coordinates,calendarCells,crc32,zip};
     root.JournalUtils=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

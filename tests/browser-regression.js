@@ -20,6 +20,12 @@ async function runJournalRegression() {
             input('searchFilter','Kyoto');assert(document.querySelectorAll('.memory-card').length===1,'search');input('searchFilter','');
             $('yearFilter').value='2026';$('yearFilter').dispatchEvent(new Event('change'));assert(document.querySelectorAll('.memory-card').length===1,'year');$('yearFilter').value='All';$('yearFilter').dispatchEvent(new Event('change'));
         });
+        await check('calendar month navigation and timeline return',async()=>{
+            click($('calendarViewBtn'));assert(!$('calendarView').classList.contains('hidden'),'calendar hidden');assert($('calendarGrid').children.length===42,'calendar cells');const before=$('calendarMonthLabel').textContent;click($('calendarNext'));assert($('calendarMonthLabel').textContent!==before,'month did not change');click($('timelineViewBtn'));assert(!$('timeline').classList.contains('hidden'),'timeline hidden');
+        });
+        await check('new memory draft saves, restores and discards locally',async()=>{
+            const key='journal_memory_draft_'+__qa.user.id;localStorage.removeItem(key);click($('fabAdd'));input('memoryCaption','Local draft');input('memoryLocation','Draft place');await wait(()=>localStorage.getItem(key));click($('cancelMemoryBtn'));click($('fabAdd'));assert(!$('memoryDraftPrompt').classList.contains('hidden'),'draft prompt');click($('restoreDraftBtn'));assert($('memoryCaption').value==='Local draft'&&$('memoryLocation').value==='Draft place','draft restore');click($('cancelMemoryBtn'));click($('fabAdd'));click($('discardDraftBtn'));assert(!localStorage.getItem(key),'draft discard');click($('cancelMemoryBtn'));
+        });
         await check('profile / relationship days',async()=>{
             input('profileName','QA Couple');input('relationshipStart','2024-02-29');submit('profileForm');await wait(()=>__qa.tables.couple_profiles.length===1&&$('profileStatus').textContent.includes('Saved'));
             assert(Number($('statDays').textContent)===JournalUtils.daysTogether([],'2024-02-29'),'profile start ignored');

@@ -62,6 +62,16 @@ test('memory editor uses a fixed five-level mood index and description copy', ()
     assert.doesNotMatch(i18n, /这个瞬间/);
 });
 
+test('draft recovery and calendar are frontend-only enhancements', () => {
+    const html = read('index.html').toString('utf8');
+    const memory = read('js/memory.js').toString('utf8');
+    assert.match(html, /id="memoryDraftPrompt"/);
+    assert.match(html, /id="calendarGrid"/);
+    assert.match(memory, /journal_memory_draft_/);
+    assert.match(memory, /U\.calendarCells/);
+    assert.doesNotMatch(memory, /from\(['"](?:drafts|calendar)['"]\)/);
+});
+
 test('service worker caches only the same-origin public app shell', () => {
     const worker = read('service-worker.js').toString('utf8');
     assert.match(worker, /url\.origin !== self\.location\.origin/);

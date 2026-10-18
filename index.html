@@ -23,8 +23,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Our Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=26">
-    <link rel="stylesheet" href="css/journal.css?v=26">
+    <link rel="stylesheet" href="css/style.css?v=27">
+    <link rel="stylesheet" href="css/journal.css?v=27">
     <style>
         /* NEW MOCKUP: Desktop 3-Column Layout */
         .desktop-wrapper {
@@ -147,8 +147,18 @@
                 <label class="sr-only" for="yearFilter" data-i18n="year_all">Year</label>
                 <select id="yearFilter"><option value="All" data-i18n="year_all">All Years</option></select>
             </div>
+            <div class="memory-view-switch" role="group" aria-label="Memory view">
+                <button type="button" id="timelineViewBtn" aria-current="page" data-i18n="view_timeline">Timeline</button>
+                <button type="button" id="calendarViewBtn" data-i18n="view_calendar">Calendar</button>
+            </div>
             <div id="onThisDayFeature" class="hidden"></div>
             <main class="timeline-container" id="timeline"><div class="empty-state"><h2 data-i18n="no_memories">No memories yet</h2><p data-i18n="add_first">Your story starts here.</p></div></main>
+            <section id="calendarView" class="calendar-view hidden" aria-label="Memory calendar">
+                <div class="calendar-header"><button type="button" id="calendarPrevious" aria-label="Previous month">‹</button><h2 id="calendarMonthLabel"></h2><button type="button" id="calendarNext" aria-label="Next month">›</button></div>
+                <div id="calendarWeekdays" class="calendar-weekdays" aria-hidden="true"></div>
+                <div id="calendarGrid" class="calendar-grid"></div>
+                <div id="calendarSelection" class="calendar-selection" aria-live="polite"></div>
+            </section>
         </section>
         <aside class="sidebar-panel" id="plansPanel" data-panel="plans">
             <h2 data-i18n="upcoming_plans">Upcoming plans</h2>
@@ -182,6 +192,10 @@
             <p class="subtitle" data-i18n="subtitle">Memory details</p>
             
             <form id="memoryForm">
+                <div id="memoryDraftPrompt" class="draft-prompt hidden" role="status">
+                    <p data-i18n="draft_found">An unfinished memory draft was found.</p>
+                    <div><button type="button" id="restoreDraftBtn" class="btn-secondary" data-i18n="restore_draft">Continue draft</button><button type="button" id="discardDraftBtn" class="btn-secondary" data-i18n="discard_draft">Delete draft</button></div>
+                </div>
                 <!-- PHOTO UPLOAD -->
                 <div class="form-group">
                     <label data-i18n="date_photo">Date Photo</label>
@@ -260,7 +274,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
 
     <script src="js/config.js?v=23"></script>
-    <script src="js/i18n.js?v=25"></script>
+    <script src="js/i18n.js?v=27"></script>
     <script src="js/app.js?v=23"></script>
     
     <!-- Inline Initializer for Premium FX Mockup -->
@@ -383,8 +397,8 @@
         // Initialize default
         // Initialized by journal-features.js.
     </script>
-    <script src="js/journal-utils.js?v=23"></script>
-    <script src="js/memory.js?v=25"></script>
+    <script src="js/journal-utils.js?v=27"></script>
+    <script src="js/memory.js?v=27"></script>
     <script src="js/journal-features.js?v=25"></script>
     <script src="js/pwa.js?v=25"></script>
 </body>

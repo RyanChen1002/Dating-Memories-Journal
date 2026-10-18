@@ -19,6 +19,8 @@ A private, beautifully designed cloud application for couples to log and cherish
 - **🗺️ Interactive Maps:** Google Maps powers the primary multi-pin experience, with OpenStreetMap as an automatic fallback.
 - **✨ Premium 3D Atmospheres:** The dashboard features multiple stunning, user-selectable 3D backgrounds built natively into the app, featuring Interactive WebGL Liquid Waves, Volumetric Twilight Clouds, and High-Action Rotating tsParticle engines (like Siamese Flying Emojis and Starfields).
 - **📋 Upcoming Plans Bucket List:** An interactive sidebar module dedicated to future dates and bucket-list trips. Clicking a plan opens a gorgeous iOS-style transparent modal complete with a checklist subsystem and live discussion/notes thread!
+- **📝 Safe Local Drafts:** Unfinished memory descriptions, dates, locations, and moods can be restored after a refresh or accidental close. Photos are never stored in browser drafts.
+- **🗓️ Memory Calendar:** Switch between the timeline and a mobile-friendly monthly calendar generated from existing memories, with swipe month navigation and direct links back to each memory.
 - **💅 Apple-Tier Luxury UI:** Engineered with complex CSS properties including `backdrop-filter` frosted glassmorphism panels, hidden dynamic scrollbars, interactive responsive neon outlines, and perfectly balanced Flexbox layouts scaling flawlessly to mobile.
 
 ## 🛠️ Tech Stack
