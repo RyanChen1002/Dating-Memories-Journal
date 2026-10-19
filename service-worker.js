@@ -1,10 +1,10 @@
-const CACHE_NAME = 'dating-memories-v5';
+const CACHE_NAME = 'dating-memories-v6';
 const APP_SHELL = [
     '/auth.html',
     '/index.html',
     '/manifest.json',
     '/css/style.css?v=27',
-    '/css/journal.css?v=27',
+    '/css/journal.css?v=28',
     '/js/pwa.js?v=25',
     '/assets/icon-192.png',
     '/assets/icon-512.png',
