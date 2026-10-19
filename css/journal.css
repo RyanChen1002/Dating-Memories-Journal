@@ -48,6 +48,10 @@ body.timeline-page .sidebar-panel { background: rgba(30,24,33,.88); }
 .journal-dialog h2 { color:#f5b2bd; margin-bottom:14px; }
 .journal-dialog textarea { min-height:100px; resize:vertical; }
 .journal-dialog img { max-width:100%; max-height:65dvh; object-fit:contain; }
+#journalMap .gm-style-iw,
+#journalMap .gm-style-iw strong,
+#journalMap .gm-style-iw p { color:#2a1f2d; }
+#journalMap .gm-style-iw p { margin-top:6px; line-height:1.4; }
 .album-stage { min-height:240px; display:grid; place-items:center; background:#120e15; border-radius:14px; overflow:hidden; }
 .album-stage>img { width:100%; max-height:58dvh; object-fit:contain; }
 .album-thumbnails { display:flex; gap:10px; overflow-x:auto; padding:8px 2px 12px; scroll-snap-type:x mandatory; }
